@@ -1,0 +1,965 @@
+ 
+SQL> DESC SEMPLOYEE
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ EMP_ID                                    NOT NULL NUMBER(38)
+ EMP_NAME                                           VARCHAR2(15)
+ OFFICE                                             VARCHAR2(15)
+ DESIGNATION                                        VARCHAR2(15)
+ SHIFT                                              VARCHAR2(10)
+
+SQL> SELECT * FROM SEMPLOYEE;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT
+---------- --------------- --------------- --------------- ----------
+         1 ARUN            MADURAI         CLERK           DAY
+         2 VARUN           CHENNAI         OFFICER         DAY
+         3 KAVI            SIVAKASI        MANAGER         NIGHT
+         4 RAVI            TRICHY          CLERK           DAY
+         5 PAVI            MADURAI         OFFICER         NIGHT
+         6 SEKAR           SIVAKASI        CLERK           DAY
+
+6 rows selected.
+
+SQL> DESC SMAILBAG
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ BAG_ID                                    NOT NULL NUMBER(38)
+ OFFICE                                             VARCHAR2(15)
+ CAPACITY                                           NUMBER(38)
+ BAG_TYPE                                           VARCHAR2(15)
+
+SQL> SELECT * FROM SMAILBAG;
+
+    BAG_ID OFFICE            CAPACITY BAG_TYPE
+---------- --------------- ---------- ---------------
+       101 MADURAI                 50 NORMAL
+       102 SIVAKASI                40 SPEED
+       103 SALEM                   60 NORMAL
+       104 CHENNAI                 30 SPEED
+       105 MADURAI                 45 NORMAL
+       106 SALEM                   55 SPEED
+
+6 rows selected.
+
+SQL> DESC SRETURN
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ RETURN_ID                                 NOT NULL NUMBER(38)
+ EMP_ID                                             NUMBER(38)
+ OFFICE                                             VARCHAR2(15)
+ REASON                                             VARCHAR2(20)
+ STATUS                                             VARCHAR2(10)
+
+SQL> SELECT * FROM SRETURN;
+
+ RETURN_ID     EMP_ID OFFICE          REASON               STATUS
+---------- ---------- --------------- -------------------- ----------
+       201          1 MADURAI         DELAY                OPEN
+       202          2 CHENNAI         WRONG ITEM           CLOSED
+       203          3 SIVAKASI        DAMAGED              OPEN
+       204          4 ERODE           DELAY                OPEN
+       205          5 SIVAKASI        MISSING              CLOSED
+       206          6 CHENNAI         DAMAGED              OPEN
+
+6 rows selected.
+
+
+
+
+1: Displays all unique office names present in either the SEMPLOYEE table or the SMAILBAG table.
+
+SQL> SELECT office FROM Semployee UNION SELECT office FROM SMailBag;
+
+OFFICE
+---------------
+MADURAI
+CHENNAI
+SIVAKASI
+TRICHY
+SALEM
+
+
+2: Displays all office names including duplicates from both SEMPLOYEE and SMAILBAG
+
+SQL> SELECT office FROM Semployee UNION ALL SELECT office FROM SMailBag;
+
+OFFICE
+---------------
+MADURAI
+CHENNAI
+SIVAKASI
+TRICHY
+MADURAI
+SIVAKASI
+MADURAI
+SIVAKASI
+SALEM
+CHENNAI
+MADURAI
+
+OFFICE
+---------------
+SALEM
+
+12 rows selected.
+
+
+3: Displays office names that are common to both SEMPLOYEE and SMAILBAG.
+
+SQL> SELECT office FROM Semployee INTERSECT SELECT office FROM SMailBag;
+
+OFFICE
+---------------
+MADURAI
+CHENNAI
+SIVAKASI
+
+
+4: Displays common office names including duplicate occurrences from both tables.
+
+SQL> SELECT office FROM Semployee INTERSECT ALL SELECT office FROM SMailBag;
+
+OFFICE
+---------------
+MADURAI
+MADURAI
+CHENNAI
+SIVAKASI
+
+
+5: Displays office names that exist in SEMPLOYEE but not in SMAILBAG.
+
+SQL> SELECT office FROM Semployee MINUS SELECT office FROM SMailBag;
+
+OFFICE
+---------------
+TRICHY
+
+
+6: Displays office names that exist in SMAILBAG but not in SEMPLOYEE.
+
+SQL> SELECT office FROM SMailBag MINUS SELECT office FROM Semployee;
+
+OFFICE
+---------------
+SALEM
+
+
+7:Displays office names present in SEMPLOYEE but not in SMAILBAG.
+
+SQL> SELECT office FROM Semployee EXCEPT SELECT office FROM SMailBag;
+
+OFFICE
+---------------
+TRICHY
+
+
+8: Displays office names that are common to both SEMPLOYEE and SMAILBAG using set difference logic.
+
+SQL> SELECT office FROM Semployee MINUS (SELECT office FROM Semployee MINUS SELECT office FROM SMailBag);
+
+OFFICE
+---------------
+MADURAI
+CHENNAI
+SIVAKASI
+
+
+9: Displays all unique office names from SEMPLOYEE, SMAILBAG, and SRETURN.
+
+SQL> SELECT office FROM Semployee UNION SELECT office FROM SMailBag UNION SELECT office FROM SReturn;
+
+OFFICE
+---------------
+MADURAI
+CHENNAI
+SIVAKASI
+TRICHY
+SALEM
+ERODE
+
+6 rows selected.
+
+
+10: Displays office names that are common to all three tables: SEMPLOYEE, SMAILBAG, and SRETURN.
+
+SQL> SELECT office FROM Semployee INTERSECT SELECT office FROM SMailBag INTERSECT SELECT office FROM SReturn;
+
+OFFICE
+---------------
+MADURAI
+CHENNAI
+SIVAKASI
+
+
+11: Performs a Cartesian product, combining every row of SEMPLOYEE with every row of SMAILBAG.
+
+
+SQL> SELECT * FROM Semployee, SMailBag;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         1 ARUN            MADURAI         CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         1 ARUN            MADURAI         CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+         1 ARUN            MADURAI         CLERK           DAY               103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         1 ARUN            MADURAI         CLERK           DAY               104
+CHENNAI                 30 SPEED
+
+         1 ARUN            MADURAI         CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+         1 ARUN            MADURAI         CLERK           DAY               106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         2 VARUN           CHENNAI         OFFICER         DAY               101
+MADURAI                 50 NORMAL
+
+         2 VARUN           CHENNAI         OFFICER         DAY               102
+SIVAKASI                40 SPEED
+
+         2 VARUN           CHENNAI         OFFICER         DAY               103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         2 VARUN           CHENNAI         OFFICER         DAY               104
+CHENNAI                 30 SPEED
+
+         2 VARUN           CHENNAI         OFFICER         DAY               105
+MADURAI                 45 NORMAL
+
+         2 VARUN           CHENNAI         OFFICER         DAY               106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             101
+MADURAI                 50 NORMAL
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             102
+SIVAKASI                40 SPEED
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             104
+CHENNAI                 30 SPEED
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             105
+MADURAI                 45 NORMAL
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         4 RAVI            TRICHY          CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         4 RAVI            TRICHY          CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+         4 RAVI            TRICHY          CLERK           DAY               103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         4 RAVI            TRICHY          CLERK           DAY               104
+CHENNAI                 30 SPEED
+
+         4 RAVI            TRICHY          CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+         4 RAVI            TRICHY          CLERK           DAY               106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         5 PAVI            MADURAI         OFFICER         NIGHT             101
+MADURAI                 50 NORMAL
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             102
+SIVAKASI                40 SPEED
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         5 PAVI            MADURAI         OFFICER         NIGHT             104
+CHENNAI                 30 SPEED
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             105
+MADURAI                 45 NORMAL
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         6 SEKAR           SIVAKASI        CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         6 SEKAR           SIVAKASI        CLERK           DAY               104
+CHENNAI                 30 SPEED
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               106
+SALEM                   55 SPEED
+
+
+36 rows selected.
+
+
+12: Explicitly performs a Cartesian product between SEMPLOYEE and SMAILBAG.
+
+SQL> SELECT * FROM Semployee CROSS JOIN SMailBag;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         1 ARUN            MADURAI         CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         1 ARUN            MADURAI         CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+         1 ARUN            MADURAI         CLERK           DAY               103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         1 ARUN            MADURAI         CLERK           DAY               104
+CHENNAI                 30 SPEED
+
+         1 ARUN            MADURAI         CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+         1 ARUN            MADURAI         CLERK           DAY               106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         2 VARUN           CHENNAI         OFFICER         DAY               101
+MADURAI                 50 NORMAL
+
+         2 VARUN           CHENNAI         OFFICER         DAY               102
+SIVAKASI                40 SPEED
+
+         2 VARUN           CHENNAI         OFFICER         DAY               103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         2 VARUN           CHENNAI         OFFICER         DAY               104
+CHENNAI                 30 SPEED
+
+         2 VARUN           CHENNAI         OFFICER         DAY               105
+MADURAI                 45 NORMAL
+
+         2 VARUN           CHENNAI         OFFICER         DAY               106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             101
+MADURAI                 50 NORMAL
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             102
+SIVAKASI                40 SPEED
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             104
+CHENNAI                 30 SPEED
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             105
+MADURAI                 45 NORMAL
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         4 RAVI            TRICHY          CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         4 RAVI            TRICHY          CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+         4 RAVI            TRICHY          CLERK           DAY               103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         4 RAVI            TRICHY          CLERK           DAY               104
+CHENNAI                 30 SPEED
+
+         4 RAVI            TRICHY          CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+         4 RAVI            TRICHY          CLERK           DAY               106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         5 PAVI            MADURAI         OFFICER         NIGHT             101
+MADURAI                 50 NORMAL
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             102
+SIVAKASI                40 SPEED
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         5 PAVI            MADURAI         OFFICER         NIGHT             104
+CHENNAI                 30 SPEED
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             105
+MADURAI                 45 NORMAL
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         6 SEKAR           SIVAKASI        CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               103
+SALEM                   60 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         6 SEKAR           SIVAKASI        CLERK           DAY               104
+CHENNAI                 30 SPEED
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               106
+SALEM                   55 SPEED
+
+
+36 rows selected.
+
+
+13 : Showing that a condition cannot be used with CROSS JOIN.
+
+SQL> SELECT * FROM Semployee CROSS JOIN SMailBag ON Semployee.office = SMailBag.office;
+SELECT * FROM Semployee CROSS JOIN SMailBag ON Semployee.office = SMailBag.office
+                                            *
+ERROR at line 1:
+ORA-00933: SQL command not properly ended
+
+
+14: Displays employee and mailbag details only when both have the same office, using the cartesian product method.
+
+SQL> SELECT * FROM Semployee S, SMailBag M WHERE S.office = M.office;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         1 ARUN            MADURAI         CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             101
+MADURAI                 50 NORMAL
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             102
+SIVAKASI                40 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         6 SEKAR           SIVAKASI        CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+         2 VARUN           CHENNAI         OFFICER         DAY               104
+CHENNAI                 30 SPEED
+
+         1 ARUN            MADURAI         CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         5 PAVI            MADURAI         OFFICER         NIGHT             105
+MADURAI                 45 NORMAL
+
+
+7 rows selected.
+
+
+
+15: Displays rows where the office value matches in both SEMPLOYEE and SMAILBAG.
+
+SQL> SELECT * FROM Semployee S INNER JOIN SMailBag M ON S.office = M.office;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         1 ARUN            MADURAI         CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             101
+MADURAI                 50 NORMAL
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             102
+SIVAKASI                40 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         6 SEKAR           SIVAKASI        CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+         2 VARUN           CHENNAI         OFFICER         DAY               104
+CHENNAI                 30 SPEED
+
+         1 ARUN            MADURAI         CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         5 PAVI            MADURAI         OFFICER         NIGHT             105
+MADURAI                 45 NORMAL
+
+
+7 rows selected.
+
+
+
+16: Same as INNER JOIN; displays matching rows based on office.
+
+SQL> SELECT * FROM Semployee S JOIN SMailBag M ON S.office = M.office;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         1 ARUN            MADURAI         CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             101
+MADURAI                 50 NORMAL
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             102
+SIVAKASI                40 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         6 SEKAR           SIVAKASI        CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+         2 VARUN           CHENNAI         OFFICER         DAY               104
+CHENNAI                 30 SPEED
+
+         1 ARUN            MADURAI         CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         5 PAVI            MADURAI         OFFICER         NIGHT             105
+MADURAI                 45 NORMAL
+
+
+7 rows selected.
+
+
+
+17:Automatically joins SEMPLOYEE and SMAILBAG using the common column OFFICE.
+
+
+SQL> SELECT * FROM Semployee NATURAL JOIN SMailBag;
+
+OFFICE              EMP_ID EMP_NAME        DESIGNATION     SHIFT          BAG_ID
+--------------- ---------- --------------- --------------- ---------- ----------
+  CAPACITY BAG_TYPE
+---------- ---------------
+MADURAI                  1 ARUN            CLERK           DAY               101
+        50 NORMAL
+
+MADURAI                  5 PAVI            OFFICER         NIGHT             101
+        50 NORMAL
+
+SIVAKASI                 3 KAVI            MANAGER         NIGHT             102
+        40 SPEED
+
+
+OFFICE              EMP_ID EMP_NAME        DESIGNATION     SHIFT          BAG_ID
+--------------- ---------- --------------- --------------- ---------- ----------
+  CAPACITY BAG_TYPE
+---------- ---------------
+SIVAKASI                 6 SEKAR           CLERK           DAY               102
+        40 SPEED
+
+CHENNAI                  2 VARUN           OFFICER         DAY               104
+        30 SPEED
+
+MADURAI                  1 ARUN            CLERK           DAY               105
+        45 NORMAL
+
+
+OFFICE              EMP_ID EMP_NAME        DESIGNATION     SHIFT          BAG_ID
+--------------- ---------- --------------- --------------- ---------- ----------
+  CAPACITY BAG_TYPE
+---------- ---------------
+MADURAI                  5 PAVI            OFFICER         NIGHT             105
+        45 NORMAL
+
+
+7 rows selected.
+
+
+18: Displays all employees, including those who do not have a matching mailbag.
+
+
+SQL>  SELECT emp_name,bag_id FROM Semployee S LEFT OUTER JOIN SMailBag M ON S.office = M.office;
+
+EMP_NAME            BAG_ID
+--------------- ----------
+ARUN                   101
+PAVI                   101
+KAVI                   102
+SEKAR                  102
+VARUN                  104
+ARUN                   105
+PAVI                   105
+RAVI
+
+8 rows selected.
+
+19: Displays all mailbags, including those without a matching employee.
+
+SQL>  SELECT emp_name,bag_id FROM Semployee S RIGHT OUTER JOIN SMailBag M ON S.office = M.office;
+
+EMP_NAME            BAG_ID
+--------------- ----------
+ARUN                   101
+ARUN                   105
+VARUN                  104
+KAVI                   102
+PAVI                   101
+PAVI                   105
+SEKAR                  102
+                       103
+                       106
+
+9 rows selected.
+
+20: Displays employee details only if the employee has a return record.
+
+SQL> SELECT * FROM Semployee S INNER JOIN SReturn R ON S.emp_id = R.emp_id;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT       RETURN_ID
+---------- --------------- --------------- --------------- ---------- ----------
+    EMP_ID OFFICE          REASON               STATUS
+---------- --------------- -------------------- ----------
+         1 ARUN            MADURAI         CLERK           DAY               201
+         1 MADURAI         DELAY                OPEN
+
+         2 VARUN           CHENNAI         OFFICER         DAY               202
+         2 CHENNAI         WRONG ITEM           CLOSED
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             203
+         3 SIVAKASI        DAMAGED              OPEN
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT       RETURN_ID
+---------- --------------- --------------- --------------- ---------- ----------
+    EMP_ID OFFICE          REASON               STATUS
+---------- --------------- -------------------- ----------
+         4 RAVI            TRICHY          CLERK           DAY               204
+         4 ERODE           DELAY                OPEN
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             205
+         5 SIVAKASI        MISSING              CLOSED
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               206
+         6 CHENNAI         DAMAGED              OPEN
+
+
+6 rows selected.
+
+
+21: Displays all employees, along with return details if available
+
+SQL> SELECT * FROM Semployee S LEFT OUTER JOIN SReturn R ON S.emp_id = R.emp_id;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT       RETURN_ID
+---------- --------------- --------------- --------------- ---------- ----------
+    EMP_ID OFFICE          REASON               STATUS
+---------- --------------- -------------------- ----------
+         1 ARUN            MADURAI         CLERK           DAY               201
+         1 MADURAI         DELAY                OPEN
+
+         2 VARUN           CHENNAI         OFFICER         DAY               202
+         2 CHENNAI         WRONG ITEM           CLOSED
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             203
+         3 SIVAKASI        DAMAGED              OPEN
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT       RETURN_ID
+---------- --------------- --------------- --------------- ---------- ----------
+    EMP_ID OFFICE          REASON               STATUS
+---------- --------------- -------------------- ----------
+         4 RAVI            TRICHY          CLERK           DAY               204
+         4 ERODE           DELAY                OPEN
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             205
+         5 SIVAKASI        MISSING              CLOSED
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               206
+         6 CHENNAI         DAMAGED              OPEN
+
+
+6 rows selected.
+
+
+
+22: Displays all return records, even if an employee record is missing.
+
+
+SQL> SELECT * FROM Semployee S RIGHT OUTER JOIN SReturn R ON S.emp_id = R.emp_id;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT       RETURN_ID
+---------- --------------- --------------- --------------- ---------- ----------
+    EMP_ID OFFICE          REASON               STATUS
+---------- --------------- -------------------- ----------
+         1 ARUN            MADURAI         CLERK           DAY               201
+         1 MADURAI         DELAY                OPEN
+
+         2 VARUN           CHENNAI         OFFICER         DAY               202
+         2 CHENNAI         WRONG ITEM           CLOSED
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             203
+         3 SIVAKASI        DAMAGED              OPEN
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT       RETURN_ID
+---------- --------------- --------------- --------------- ---------- ----------
+    EMP_ID OFFICE          REASON               STATUS
+---------- --------------- -------------------- ----------
+         4 RAVI            TRICHY          CLERK           DAY               204
+         4 ERODE           DELAY                OPEN
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             205
+         5 SIVAKASI        MISSING              CLOSED
+
+         6 SEKAR           SIVAKASI        CLERK           DAY               206
+         6 CHENNAI         DAMAGED              OPEN
+
+
+6 rows selected.
+
+
+23: Displays all employees and all mailbags, showing matching rows where possible and NULLs otherwise.
+
+SQL> SELECT * FROM Semployee S FULL OUTER JOIN SMailBag M ON S.office = M.office;
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         1 ARUN            MADURAI         CLERK           DAY               101
+MADURAI                 50 NORMAL
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             101
+MADURAI                 50 NORMAL
+
+         3 KAVI            SIVAKASI        MANAGER         NIGHT             102
+SIVAKASI                40 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         6 SEKAR           SIVAKASI        CLERK           DAY               102
+SIVAKASI                40 SPEED
+
+                                                                             103
+SALEM                   60 NORMAL
+
+         2 VARUN           CHENNAI         OFFICER         DAY               104
+CHENNAI                 30 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         1 ARUN            MADURAI         CLERK           DAY               105
+MADURAI                 45 NORMAL
+
+         5 PAVI            MADURAI         OFFICER         NIGHT             105
+MADURAI                 45 NORMAL
+
+                                                                             106
+SALEM                   55 SPEED
+
+
+    EMP_ID EMP_NAME        OFFICE          DESIGNATION     SHIFT          BAG_ID
+---------- --------------- --------------- --------------- ---------- ----------
+OFFICE            CAPACITY BAG_TYPE
+--------------- ---------- ---------------
+         4 RAVI            TRICHY          CLERK           DAY
+
+
+
+10 rows selected.
+
+
+
+24: Displays pairs of employees who have the same designation, excluding comparison of an employee with themselves.
+
+SQL> SELECT  E1.emp_name, E2.emp_name, E1.designation FROM Semployee E1 JOIN Semployee E2 ON E1.designation = E2.designation AND E1.emp_id <> E2.emp_id;
+
+EMP_NAME        EMP_NAME        DESIGNATION
+--------------- --------------- ---------------
+RAVI            ARUN            CLERK
+SEKAR           ARUN            CLERK
+PAVI            VARUN           OFFICER
+ARUN            RAVI            CLERK
+SEKAR           RAVI            CLERK
+VARUN           PAVI            OFFICER
+ARUN            SEKAR           CLERK
+RAVI            SEKAR           CLERK
+
+8 rows selected.
+
+
+25:join two entity with 'using' keyword
+
+SQL> select emp_name,designation,bag_id,capacity from semployee join smailbag using (office);
+
+EMP_NAME        DESIGNATION         BAG_ID   CAPACITY
+--------------- --------------- ---------- ----------
+ARUN            CLERK                  101         50
+PAVI            OFFICER                101         50
+KAVI            MANAGER                102         40
+SEKAR           CLERK                  102         40
+VARUN           OFFICER                104         30
+ARUN            CLERK                  105         45
+PAVI            OFFICER                105         45
+
+7 rows selected.

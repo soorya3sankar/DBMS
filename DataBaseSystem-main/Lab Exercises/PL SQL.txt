@@ -1,0 +1,1012 @@
+1)
+SQL> select employee_id , employee_name,experience from employee where employee_id=10;
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE
+----------- ------------------------- ----------
+         10 ARUN                               5
+
+SQL> DECLARE
+  2      v_emp_id Employee.employee_id%TYPE := 10;
+  3  BEGIN
+  4      UPDATE Employee SET experience = experience + 1 WHERE employee_id = v_emp_id;
+  5      DBMS_OUTPUT.PUT_LINE('Experience updated for Employee ID: ' || v_emp_id);
+  6      COMMIT;
+  7  END;
+  8  /
+
+Experience updated for Employee ID: 10
+
+PL/SQL procedure successfully completed.
+
+SQL> select employee_id , employee_name,experience from employee where employee_id=10;
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE
+----------- ------------------------- ----------
+         10 ARUN                               6
+
+2)
+SQL> select bag_number ,capacity, article_count from mailbag where bag_number =5001;
+
+no rows selected
+
+
+SQL> DECLARE
+  2      v_bag_num  MailBag.bag_number%TYPE := 5001;
+  3      v_capacity MailBag.capacity%TYPE := 100;
+  4  BEGIN
+  5      INSERT INTO MailBag (bag_number, capacity, article_count)
+  6      VALUES (v_bag_num, v_capacity, 0);
+  7      DBMS_OUTPUT.PUT_LINE('New MailBag ' || v_bag_num || ' created.');
+  8      COMMIT;
+  9  END;
+ 10  /
+
+New Mailbag 5001 created
+PL/SQL procedure successfully completed.
+
+SQL> select bag_number ,capacity, article_count from mailbag where bag_number =5001;
+
+BAG_NUMBER   CAPACITY ARTICLE_COUNT
+---------- ---------- -------------
+      5001        100             0
+
+3)
+SQL> DECLARE
+  2      v_emp Employee%ROWTYPE;
+  3  BEGIN
+  4      SELECT * INTO v_emp FROM Employee WHERE employee_id = 10;
+  5      DBMS_OUTPUT.PUT_LINE('Name: ' || v_emp.employee_name || ' | Type: ' || v_emp.employee_type);
+  6  EXCEPTION
+  7      WHEN NO_DATA_FOUND THEN
+  8          DBMS_OUTPUT.PUT_LINE('Employee not found.');
+  9  END;
+ 10  /
+Name: ARUN | Type: Full-Time
+
+PL/SQL procedure successfully completed.
+
+4)
+SQL> DECLARE
+  2      v_total_articles NUMBER;
+  3      v_dest_office    MailBag.destination_office%TYPE := 401;
+  4  BEGIN
+  5      SELECT SUM(article_count) INTO v_total_articles
+  6      FROM MailBag WHERE destination_office = v_dest_office;
+  7      DBMS_OUTPUT.PUT_LINE('Total articles for Office ' || v_dest_office || ': ' || NVL(v_total_articles, 0));
+  8  END;
+  9  /
+Total articles for Office 401: 175
+
+PL/SQL procedure successfully completed.
+
+5)
+SQL> DECLARE
+  2      v_record_no TravelRecord.movement_record_no%TYPE := &v_id;
+  3  BEGIN
+  4      UPDATE TravelRecord
+  5      SET movement_status = 'ARRIVED'
+  6      WHERE movement_record_no = v_record_no;
+  7
+  8      IF SQL%NOTFOUND THEN
+  9          RAISE_APPLICATION_ERROR(-20001, 'Movement record ' || v_record_no || ' does not exist.');
+ 10      ELSE
+ 11          DBMS_OUTPUT.PUT_LINE('Record ' || v_record_no || ' updated to ARRIVED.');
+ 12      END IF;
+ 13
+ 14      COMMIT;
+ 15  END;
+ 16  /
+
+SQL> ACCEPT v_id NUMBER PROMPT 'Please enter the Movement Record ID:'
+Please enter the Movement Record ID:9001
+
+old   2:     v_record_no TravelRecord.movement_record_no%TYPE := &v_id;
+new   2:     v_record_no TravelRecord.movement_record_no%TYPE :=       9001;
+Record 9001 updated to ARRIVED.
+
+PL/SQL procedure successfully completed.
+
+SQL> ACCEPT v_id NUMBER PROMPT 'Please enter the Movement Record ID:'
+Please enter the Movement Record ID:999
+
+SQL> /
+old   2:     v_record_no TravelRecord.movement_record_no%TYPE := &v_id;
+new   2:     v_record_no TravelRecord.movement_record_no%TYPE :=        999;
+DECLARE
+*
+ERROR at line 1:
+ORA-20001: Movement record 999 does not exist.
+ORA-06512: at line 9
+
+6)
+SQL> DECLARE
+  2      CURSOR c_bags IS SELECT bag_number, article_count FROM MailBag;
+  3      v_bag_num MailBag.bag_number%TYPE;
+  4      v_count   MailBag.article_count%TYPE;
+  5  BEGIN
+  6      OPEN c_bags;
+  7      LOOP
+  8          FETCH c_bags INTO v_bag_num, v_count;
+  9          EXIT WHEN c_bags%NOTFOUND;
+ 10          DBMS_OUTPUT.PUT_LINE('Bag: ' || v_bag_num || ' | Articles: ' || v_count);
+ 11      END LOOP;
+ 12      CLOSE c_bags;
+ 13  END;
+ 14  /
+Bag: 2001 | Articles: 25
+Bag: 2002 | Articles: 35
+Bag: 2003 | Articles: 45
+Bag: 2004 | Articles: 55
+Bag: 3001 | Articles: 20
+Bag: 3002 | Articles: 30
+Bag: 3003 | Articles: 40
+Bag: 3004 | Articles: 50
+Bag: 4001 | Articles: 45
+Bag: 4002 | Articles: 50
+Bag: 5002 | Articles: 25
+Bag: 5003 | Articles: 35
+Bag: 5004 | Articles: 45
+Bag: 5005 | Articles: 55
+Bag: 5006 | Articles: 65
+Bag: 7001 | Articles: 10
+Bag: 1001 | Articles: 10
+Bag: 5001 | Articles: 0
+
+PL/SQL procedure successfully completed.
+
+7)
+SQL> BEGIN
+  2      FOR emp_rec IN (SELECT employee_name, designation FROM Employee WHERE office_code = 101) LOOP
+  3          DBMS_OUTPUT.PUT_LINE(emp_rec.employee_name || ' works as ' || emp_rec.designation);
+  4      END LOOP;
+  5  END;
+  6  /
+RAM works as POSTMASTER
+ARUN works as Manager
+KAVI works as Clerk
+PAVI works as Clerk
+SARUN works as Clerk
+RAMESH works as POSTMASTER
+SURESH works as SUPERVISOR
+KUMAR works as Clerk
+KARTHIK works as DELIVERY STAFF
+ARUN works as SORTING STAFF
+VARUN works as Clerk
+MARUN works as Clerk
+
+PL/SQL procedure successfully completed.
+
+8)
+SQL> select * from userarticle where user_id=50;
+
+   USER_ID ARTICLE_NO TYPE
+---------- ---------- -------------------------
+        50        102 Technology
+
+SQL> DECLARE
+  2      TYPE article_summary IS RECORD (
+  3          art_no  UserArticle.article_no%TYPE,
+  4          u_type  UserArticle.type%TYPE
+  5      );
+  6      v_summary article_summary;
+  7  BEGIN
+  8      SELECT article_no, type INTO v_summary FROM UserArticle WHERE user_id = 50;
+  9      DBMS_OUTPUT.PUT_LINE('Article: ' || v_summary.art_no || ' Type: ' || v_summary.u_type);
+ 10  END;
+ 11  /
+Article: 102 Type: Technology
+
+PL/SQL procedure successfully completed.
+
+9)
+SQL> DECLARE
+  2      v_exp employee.experience%TYPE;
+  3  BEGIN
+  4      v_exp := &experience;
+  5      IF v_exp < 2 THEN
+  6          DBMS_OUTPUT.PUT_LINE('Fresher');
+  7      ELSIF v_exp >= 2 AND v_exp <= 6 THEN
+  8          DBMS_OUTPUT.PUT_LINE('Experienced');
+  9      ELSE
+ 10          DBMS_OUTPUT.PUT_LINE('Senior');
+ 11      END IF;
+ 12  END;
+ 13  /
+Enter value for experience: 1
+old   4:     v_exp := &experience;
+new   4:     v_exp := 1;
+Fresher
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for experience: 4
+old   4:     v_exp := &experience;
+new   4:     v_exp := 4;
+Experienced
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for experience: 9
+old   4:     v_exp := &experience;
+new   4:     v_exp := 9;
+Senior
+
+PL/SQL procedure successfully completed.
+
+
+10)
+
+SQL> DECLARE
+  2      v_exp  employee.experience%TYPE;
+  3      v_cat  VARCHAR2(20);
+  4  BEGIN
+  5      v_exp := &experience;
+  6      v_cat :=
+  7          CASE
+  8              WHEN v_exp < 2                  THEN 'FRESHER'
+  9              WHEN v_exp BETWEEN 2 AND 6      THEN 'EXPERIENCED'
+ 10              ELSE                                 'SENIOR'
+ 11          END;
+ 12      DBMS_OUTPUT.PUT_LINE('Experience category: ' || v_cat);
+ 13  END;
+ 14  /
+Enter value for experience: 1
+old   5:     v_exp := &experience;
+new   5:     v_exp := 1;
+Experience category: FRESHER
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for experience: 4
+old   5:     v_exp := &experience;
+new   5:     v_exp := 4;
+Experience category: EXPERIENCED
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for experience: 9
+old   5:     v_exp := &experience;
+new   5:     v_exp := 9;
+Experience category: SENIOR
+
+PL/SQL procedure successfully completed.
+
+11)
+SQL> DECLARE
+  2      v_name employee.employee_name%TYPE;
+  3      v_exp  employee.experience%TYPE;
+  4      CURSOR emp_cursor IS
+  5          SELECT employee_name, experience FROM employee;
+  6  BEGIN
+  7      OPEN emp_cursor;
+  8
+  9      FETCH emp_cursor INTO v_name, v_exp;
+ 10      IF emp_cursor%FOUND THEN
+ 11          DBMS_OUTPUT.PUT_LINE('First row fetched: ' || v_name);
+ 12      ELSE
+ 13          DBMS_OUTPUT.PUT_LINE('No row fetched');
+ 14      END IF;
+ 15
+ 16      FETCH emp_cursor INTO v_name, v_exp;
+ 17      IF emp_cursor%FOUND THEN
+ 18          DBMS_OUTPUT.PUT_LINE('Second row fetched: ' || v_name);
+ 19      ELSE
+ 20          DBMS_OUTPUT.PUT_LINE('No row fetched');
+ 21      END IF;
+ 22
+ 23      IF emp_cursor%ISOPEN THEN
+ 24          DBMS_OUTPUT.PUT_LINE('Cursor is open');
+ 25      ELSE
+ 26          DBMS_OUTPUT.PUT_LINE('Cursor is not open');
+ 27      END IF;
+ 28
+ 29      DBMS_OUTPUT.PUT_LINE('Number of rows fetched: ' || emp_cursor%ROWCOUNT);
+ 30
+ 31      CLOSE emp_cursor;
+ 32
+ 33      IF emp_cursor%ISOPEN THEN
+ 34          DBMS_OUTPUT.PUT_LINE('Cursor is open');
+ 35      ELSE
+ 36          DBMS_OUTPUT.PUT_LINE('Cursor is closed');
+ 37      END IF;
+ 38  END;
+ 39  /
+First row fetched: RAM
+Second row fetched: ARUN
+Cursor is open
+Number of rows fetched: 2
+Cursor is closed
+
+PL/SQL procedure successfully completed.
+
+12)
+SQL> DECLARE
+  2      v_count NUMBER := 0;
+  3      v_max   MailBag.capacity%TYPE;
+  4  BEGIN
+  5      SELECT capacity INTO v_max FROM MailBag WHERE bag_number = 1001;
+  6      WHILE v_count < v_max LOOP
+  7          v_count := v_count + 1;
+  8      END LOOP;
+  9      UPDATE MailBag SET article_count = v_count WHERE bag_number = 1001;
+ 10      DBMS_OUTPUT.PUT_LINE('Bag 1001 fully loaded with ' || v_count || ' articles.');
+ 11  END;
+ 12  /
+Bag 1001 fully loaded with 50 articles.
+
+PL/SQL procedure successfully completed.
+
+13)
+SQL> DECLARE
+  2      n NUMBER := 1;
+  3  BEGIN
+  4      LOOP
+  5          DBMS_OUTPUT.PUT_LINE('Number: ' || n);
+  6          n := n + 1;
+  7          EXIT WHEN n > 5;
+  8      END LOOP;
+  9  END;
+ 10  /
+Number: 1
+Number: 2
+Number: 3
+Number: 4
+Number: 5
+
+PL/SQL procedure successfully completed.
+
+14)
+SQL> DECLARE
+  2      CURSOR c_emp (p_office INT) IS
+  3          SELECT employee_name FROM Employee WHERE office_code = p_office;
+  4      v_name Employee.employee_name%TYPE;
+  5  BEGIN
+  6      OPEN c_emp(101);
+  7      LOOP
+  8          FETCH c_emp INTO v_name;
+  9          EXIT WHEN c_emp%NOTFOUND;
+ 10          DBMS_OUTPUT.PUT_LINE('Staff at Office 101: ' || v_name);
+ 11      END LOOP;
+ 12      CLOSE c_emp;
+ 13  END;
+ 14  /
+Staff at Office 101: RAM
+Staff at Office 101: ARUN
+Staff at Office 101: KAVI
+Staff at Office 101: PAVI
+Staff at Office 101: SARUN
+Staff at Office 101: RAMESH
+Staff at Office 101: SURESH
+Staff at Office 101: KUMAR
+Staff at Office 101: KARTHIK
+Staff at Office 101: ARUN
+Staff at Office 101: VARUN
+Staff at Office 101: MARUN
+
+PL/SQL procedure successfully completed.
+
+15)
+SQL> BEGIN
+  2      UPDATE TravelRecord SET movement_status = 'RETURNED' WHERE bag_number = 500;
+  3      BEGIN 
+  4          INSERT INTO Return (return_id, article_no, return_reason) VALUES (1, 101, 'Wrong Address');
+  5          DBMS_OUTPUT.PUT_LINE('Return details logged.');
+  6      EXCEPTION
+  7          WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('Inner block failed: Log already exists.');
+  8      END;
+  9      COMMIT;
+ 10  END;
+ 11  /
+Return details logged.
+
+PL/SQL procedure successfully completed.
+
+16)
+SQL> BEGIN
+  2      DELETE FROM UrgencyLevel WHERE urgencycode = 1;
+  3      IF SQL%FOUND THEN
+  4          DBMS_OUTPUT.PUT_LINE('Urgency code 1 removed.');
+  5      ELSE
+  6          DBMS_OUTPUT.PUT_LINE('No such urgency code found.');
+  7      END IF;
+  8  END;
+  9  /
+Urgency code 1 removed.
+
+PL/SQL procedure successfully completed.
+
+
+SQL> /
+No such urgency code found.
+
+PL/SQL procedure successfully completed.
+
+17)
+SQL> select dispatch_time,arrival_time from travelrecord where movement_record_no=9003;
+
+DISPATCH_TIME
+---------------------------------------------------------------------------
+ARRIVAL_TIME
+---------------------------------------------------------------------------
+13-MAR-26 11.24.12.000000 PM
+15-MAR-26 11.24.12.000000 PM
+
+
+SQL> DECLARE
+  2      v_dispatch TravelRecord.dispatch_time%TYPE;
+  3      v_arrival  TravelRecord.arrival_time%TYPE;
+  4      v_diff     NUMBER;
+  5  BEGIN
+  6      SELECT dispatch_time, arrival_time INTO v_dispatch, v_arrival
+  7      FROM TravelRecord WHERE movement_record_no = 9003;
+  8      v_diff := EXTRACT(DAY FROM (v_arrival - v_dispatch));
+  9      DBMS_OUTPUT.PUT_LINE('Total days in transit: ' || v_diff);
+ 10  END;
+ 11  /
+Total days in transit: 2
+
+PL/SQL procedure successfully completed.
+
+18)
+SQL> DECLARE
+  2      v_mgr_exists NUMBER;
+  3      v_new_mgr    INT := &mgr_id;
+  4  BEGIN
+  5      SELECT COUNT(*) INTO v_mgr_exists FROM Employee WHERE employee_id = v_new_mgr;
+  6      IF v_mgr_exists > 0 THEN
+  7          UPDATE Employee SET manager_id = v_new_mgr WHERE employee_id = 3;
+  8          DBMS_OUTPUT.PUT_LINE('Manager updated successfully.');
+  9      ELSE
+ 10          DBMS_OUTPUT.PUT_LINE('Error: Manager ID ' || v_new_mgr || ' does not exist.');
+ 11      END IF;
+ 12  END;
+ 13  /
+Enter value for mgr_id: 1
+old   3:     v_new_mgr    INT := &mgr_id;
+new   3:     v_new_mgr    INT := 1;
+Manager updated successfully.
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for mgr_id: 998
+old   3:     v_new_mgr    INT := &mgr_id;
+new   3:     v_new_mgr    INT := 998;
+Error: Manager ID 998 does not exist.
+
+PL/SQL procedure successfully completed.
+
+19)
+SQL> BEGIN
+  2      UPDATE Employee
+  3      SET experience = experience + 0.5
+  4      WHERE shift_details = 'Morning';
+  5
+  6      DBMS_OUTPUT.PUT_LINE('Bonus applied to ' || SQL%ROWCOUNT || ' employees.');
+  7
+  8      COMMIT;
+  9  END;
+ 10  /
+Bonus applied to 6 employees.
+
+PL/SQL procedure successfully completed.
+
+20)
+SQL> DECLARE
+  2      v_rec1 MailBag%ROWTYPE;
+  3      v_rec2 MailBag%ROWTYPE;
+  4  BEGIN
+  5      SELECT * INTO v_rec1 FROM MailBag WHERE bag_number = 1001;
+  6      v_rec2 := v_rec1;
+  7      v_rec2.bag_number := 999;
+  8      INSERT INTO MailBag VALUES v_rec2;
+  9      DBMS_OUTPUT.PUT_LINE('Cloned bag 101 to new bag 999.');
+ 10  END;
+ 11  /
+Cloned bag 1001 to new bag 999.
+
+PL/SQL procedure successfully completed.
+
+SQL> select * from mailbag where bag_number =999;
+
+BAG_NUMBER SERIAL_NUMBER   CAPACITY ARTICLE_COUNT SOURCE_OFFICE
+---------- ------------- ---------- ------------- -------------
+DESTINATION_OFFICE
+------------------
+DISPATCH_TIME
+---------------------------------------------------------------------------
+TRANSPORT_NUMBER
+----------------
+       999             1         50            11           101
+               102
+25-FEB-26 08.41.06.816000 PM
+            5001
+
+21)
+SQL> DECLARE
+  2      CURSOR c_tracker IS
+  3          SELECT e.employee_name, t.bag_number
+  4          FROM Employee e
+  5          JOIN TravelRecord t ON e.employee_id = t.employee_id;
+  6  BEGIN
+  7      FOR r IN c_tracker LOOP
+  8          DBMS_OUTPUT.PUT_LINE('Employee ' || r.employee_name || ' moved Bag #' || r.bag_number);
+  9      END LOOP;
+ 10  END;
+ 11  /
+Employee RAMESH moved Bag #1001
+Employee KUMAR moved Bag #1001
+
+PL/SQL procedure successfully completed.
+
+   	EXCEPTION
+22)
+SQL> DECLARE
+  2      v_name employee.employee_name%TYPE;
+  3      n      NUMBER;
+  4  BEGIN
+  5      n := &n;
+  6      SELECT employee_name INTO v_name
+  7      FROM employee WHERE employee_id = n;
+  8      DBMS_OUTPUT.PUT_LINE('Name: ' || v_name);
+  9  EXCEPTION
+ 10      WHEN NO_DATA_FOUND THEN
+ 11          DBMS_OUTPUT.PUT_LINE('Error: No data found');
+ 12  END;
+ 13  /
+Enter value for n: 10
+old   5:     n := &n;
+new   5:     n := 10;
+Name: ARUN
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for n: 999
+old   5:     n := &n;
+new   5:     n := 999;
+Error: No data found
+
+PL/SQL procedure successfully completed
+
+23)
+SQL> DECLARE
+  2      v_name employee.employee_name%TYPE;
+  3  BEGIN
+  4      SELECT employee_name INTO v_name FROM employee;
+  5      DBMS_OUTPUT.PUT_LINE('Name: ' || v_name);
+  6  EXCEPTION
+  7      WHEN TOO_MANY_ROWS THEN
+  8          DBMS_OUTPUT.PUT_LINE('Error: Too many rows');
+  9  END;
+ 10  /
+Error: Too many rows
+
+PL/SQL procedure successfully completed.
+
+24)
+SQL> DECLARE
+  2      n NUMBER := 0;
+  3  BEGIN
+  4      n := n / n;
+  5      DBMS_OUTPUT.PUT_LINE(n);
+  6  EXCEPTION
+  7      WHEN ZERO_DIVIDE THEN
+  8          DBMS_OUTPUT.PUT_LINE('Error: Cannot divide by 0');
+  9  END;
+ 10  /
+Error: Cannot divide by 0
+
+PL/SQL procedure successfully completed.
+
+25)
+SQL> DECLARE
+  2      v_salary NUMBER;
+  3  BEGIN
+  4      SELECT employee_name INTO v_salary
+  5      FROM employee WHERE employee_id = 10;
+  6      DBMS_OUTPUT.PUT_LINE(v_salary);
+  7  EXCEPTION
+  8      WHEN VALUE_ERROR THEN
+  9          DBMS_OUTPUT.PUT_LINE('Error: Value error');
+ 10  END;
+ 11  /
+Error: Value error
+
+PL/SQL procedure successfully completed.
+
+26)
+SQL> DECLARE
+  2      v_salary NUMBER;
+  3      v_name   VARCHAR2(50);
+  4  BEGIN
+  5      SELECT experience INTO v_salary FROM employee WHERE employee_id = 10;
+  6      DBMS_OUTPUT.PUT_LINE(v_salary);
+  7      SELECT employee_name INTO v_name FROM employee;
+  8      DBMS_OUTPUT.PUT_LINE(v_name);
+  9  EXCEPTION
+ 10      WHEN VALUE_ERROR THEN
+ 11          DBMS_OUTPUT.PUT_LINE('Error: Value error');
+ 12      WHEN OTHERS THEN
+ 13          DBMS_OUTPUT.PUT_LINE('Error: Unexpected error');
+ 14  END;
+ 15  /
+6.5
+Error: Unexpected error
+
+PL/SQL procedure successfully completed.
+
+27)
+SQL> DECLARE
+  2      v_exp          employee.experience%TYPE;
+  3      negative_error EXCEPTION;
+  4  BEGIN
+  5      SELECT experience INTO v_exp
+  6      FROM employee WHERE employee_id = &id;
+  7
+  8      IF v_exp < 0 THEN
+  9          RAISE negative_error;
+ 10      ELSE
+ 11          DBMS_OUTPUT.PUT_LINE('Employee experience is valid: ' || v_exp);
+ 12      END IF;
+ 13
+ 14  EXCEPTION
+ 15      WHEN negative_error THEN
+ 16          DBMS_OUTPUT.PUT_LINE('Error: Experience cannot be negative');
+ 17      WHEN NO_DATA_FOUND THEN
+ 18          DBMS_OUTPUT.PUT_LINE('Employee not found');
+ 19  END;
+ 20  /
+Enter value for id: 10
+old   6:     FROM employee WHERE employee_id = &id;
+new   6:     FROM employee WHERE employee_id = 10;
+Employee experience is valid: 6.5
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for id: 999
+old   6:     FROM employee WHERE employee_id = &id;
+new   6:     FROM employee WHERE employee_id = 999;
+Employee not found
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for id: 99
+old   6:     FROM employee WHERE employee_id = &id;
+new   6:     FROM employee WHERE employee_id = 99;
+Error: Experience cannot be negative
+
+PL/SQL procedure successfully completed.
+
+28)
+SQL> DECLARE
+  2      i     NUMBER := 1;
+  3      v_sum NUMBER := 0;
+  4  BEGIN
+  5      WHILE i <= 10 LOOP
+  6          DBMS_OUTPUT.PUT_LINE(i);
+  7          v_sum := v_sum + i;
+  8          i := i + 2;
+  9      END LOOP;
+ 10      DBMS_OUTPUT.PUT_LINE('Sum: ' || v_sum);
+ 11  END;
+ 12  /
+1
+3
+5
+7
+9
+Sum: 25
+
+PL/SQL procedure successfully completed.
+
+29)
+SQL> DECLARE
+  2      y NUMBER := &year;
+  3  BEGIN
+  4      IF MOD(y, 400) = 0 OR (MOD(y, 4) = 0 AND MOD(y, 100) <> 0) THEN
+  5          DBMS_OUTPUT.PUT_LINE('Leap Year');
+  6      ELSE
+  7          DBMS_OUTPUT.PUT_LINE('Not a Leap Year');
+  8      END IF;
+  9  END;
+ 10  /
+Enter value for year: 2024
+old   2:     y NUMBER := &year;
+new   2:     y NUMBER := 2024;
+Leap Year
+
+PL/SQL procedure successfully completed.
+
+SQL> /
+Enter value for year: 2006
+old   2:     y NUMBER := &year;
+new   2:     y NUMBER := 2006;
+Not a Leap Year
+
+
+
+
+
+
+HR
+
+
+
+
+
+
+
+
+
+SQL> ACCEPT n NUMBER PROMPT 'Enter number of terms: '
+Enter number of terms: 5
+SQL> DECLARE
+  2      a NUMBER := 0;
+  3      b NUMBER := 1;
+  4      c NUMBER;
+  5      i NUMBER;
+  6      n NUMBER := &n;
+  7  BEGIN
+  8      DBMS_OUTPUT.PUT_LINE('Fibonacci Series:');
+  9
+ 10      FOR i IN 1..n LOOP
+ 11          DBMS_OUTPUT.PUT_LINE(a);
+ 12          c := a + b;
+ 13          a := b;
+ 14          b := c;
+ 15      END LOOP;
+ 16  END;
+ 17  /
+Fibonacci Series:
+0
+1
+1
+2
+3
+
+PL/SQL procedure successfully completed.
+
+
+3
+
+
+
+
+SQL> ACCEPT n NUMBER PROMPT 'Enter a number: '
+Enter a number: 153
+
+SQL> DECLARE
+  2      n NUMBER := &n;
+  3      i NUMBER;
+  4      cnt NUMBER := 0;
+  5      temp NUMBER;
+  6      total NUMBER := 0;
+  7      r NUMBER;
+  8  BEGIN
+  9
+ 10      IF MOD(n,2) = 0 THEN
+ 11          DBMS_OUTPUT.PUT_LINE('This number '||n||' is Even');
+ 12      ELSE
+ 13          DBMS_OUTPUT.PUT_LINE('This number '||n||' is Odd');
+ 14      END IF;
+ 15
+ 16      IF n >= 0 THEN
+ 17          DBMS_OUTPUT.PUT_LINE('This number '||n||' is Positive');
+ 18      ELSE
+ 19          DBMS_OUTPUT.PUT_LINE('This number '||n||' is Negative');
+ 20      END IF;
+ 21
+ 22      FOR i IN 1..n LOOP
+ 23          IF MOD(n,i) = 0 THEN
+ 24              cnt := cnt + 1;
+ 25          END IF;
+ 26      END LOOP;
+ 27
+ 28      IF cnt = 2 THEN
+ 29          DBMS_OUTPUT.PUT_LINE('This number '||n||' is Prime');
+ 30      ELSE
+ 31          DBMS_OUTPUT.PUT_LINE('This number '||n||' is Not Prime');
+ 32      END IF;
+ 33
+ 34      temp := n;
+ 35
+ 36      DECLARE
+ 37          digits NUMBER := 0;
+ 38      BEGIN
+ 39          WHILE temp > 0 LOOP
+ 40              digits := digits + 1;
+ 41              temp := TRUNC(temp/10);
+ 42          END LOOP;
+ 43
+ 44          temp := n;
+ 45
+ 46          WHILE temp > 0 LOOP
+ 47              r := MOD(temp,10);
+ 48              total := total + POWER(r,digits);
+ 49              temp := TRUNC(temp/10);
+ 50          END LOOP;
+ 51
+ 52          IF total = n THEN
+ 53              DBMS_OUTPUT.PUT_LINE('This number '||n||' is Armstrong');
+ 54          ELSE
+ 55              DBMS_OUTPUT.PUT_LINE('This number '||n||' is Not Armstrong');
+ 56          END IF;
+ 57      END;
+ 58
+ 59  END;
+ 60  /
+
+This number 153 is Odd
+This number 153 is Positive
+This number 153 is Not Prime
+This number 153 is Armstrong
+
+PL/SQL procedure successfully completed.
+
+
+SQL> ACCEPT n NUMBER PROMPT 'Enter a number: '
+Enter a number: 144
+SQL> /
+This number 144 is Even
+This number 144 is Positive
+This number 144 is Not Prime
+This number 144 is Not Armstrong
+
+PL/SQL procedure successfully completed.
+
+SQL> ACCEPT n NUMBER PROMPT 'Enter a number: '
+Enter a number: -145
+SQL> /
+This number -145 is Odd
+This number -145 is Negative
+This number -145 is Not Prime
+This number -145 is Not Armstrong
+
+PL/SQL procedure successfully completed.
+
+SQL> ACCEPT n NUMBER PROMPT 'Enter a number: '
+Enter a number: 17
+SQL> /
+This number 17 is Odd
+This number 17 is Positive
+This number 17 is Prime
+This number 17 is Not Armstrong
+
+PL/SQL procedure successfully completed.
+
+
+
+
+
+
+
+
+
+
+SQL> CREATE TABLE sampleemployee(
+  2      emp_id NUMBER,
+  3      emp_name VARCHAR2(20),
+  4      city VARCHAR2(20),
+  5      salary NUMBER,
+  6      dept_id NUMBER
+  7  );
+
+
+SQL> INSERT ALL
+  2  INTO sampleemployee VALUES(1,'Arun','Sivakasi',30000,1)
+  3  INTO sampleemployee VALUES(2,'Ajay','Madurai',25000,1)
+  4  INTO sampleemployee VALUES(3,'Anitha','Sivakasi',40000,2)
+  5  INTO sampleemployee VALUES(4,'Kumar','Chennai',20000,2)
+  6  INTO sampleemployee VALUES(5,'Aravind','Sivakasi',45000,1)
+  7  SELECT * FROM dual;
+
+5 rows created.
+
+SQL> select * from sampleemployee;
+
+    EMP_ID EMP_NAME             CITY                     SALARY    DEPT_ID
+---------- -------------------- -------------------- ---------- ----------
+         1 Arun                 Sivakasi                  30000          1
+         2 Ajay                 Madurai                   25000          1
+         3 Anitha               Sivakasi                  40000          2
+         4 Kumar                Chennai                   20000          2
+         5 Aravind              Sivakasi                  45000          1
+
+
+
+SQL> DECLARE
+  2      CURSOR c1 IS
+  3      SELECT * FROM sampleemployee WHERE emp_name LIKE 'A%';
+  4
+  5      e sampleemployee%ROWTYPE;
+  6
+  7  BEGIN
+  8      OPEN c1;
+  9
+ 10      LOOP
+ 11          FETCH c1 INTO e;
+ 12          EXIT WHEN c1%NOTFOUND;
+ 13
+ 14          DBMS_OUTPUT.PUT_LINE(e.emp_id||' '||e.emp_name);
+ 15      END LOOP;
+ 16
+ 17      DBMS_OUTPUT.PUT_LINE('Rows fetched: '||c1%ROWCOUNT);
+ 18
+ 19      CLOSE c1;
+ 20  END;
+ 21  /
+1 Arun
+2 Ajay
+3 Anitha
+5 Aravind
+Rows fetched: 4
+
+PL/SQL procedure successfully completed.
+
+
+
+
+
+
+
+SQL> select emp_name , salary from sampleemployee;
+
+EMP_NAME                 SALARY
+-------------------- ----------
+Arun                      30000
+Ajay                      25000
+Anitha                    40000
+Kumar                     20000
+Aravind                   45000
+
+
+SQL> select avg(salary) from sampleemployee;
+
+AVG(SALARY)
+-----------
+      32000
+
+
+SQL> DECLARE
+  2      CURSOR c1 IS
+  3      SELECT *
+  4      FROM sampleemployee e
+  5      WHERE city='Sivakasi'
+  6      AND salary >
+  7      (SELECT AVG(salary)
+  8       FROM sampleemployee
+  9       WHERE dept_id = e.dept_id);
+ 10
+ 11      r sampleemployee%ROWTYPE;
+ 12      c NUMBER := 0;
+ 13
+ 14  BEGIN
+ 15
+ 16      OPEN c1;
+ 17
+ 18      LOOP
+ 19          FETCH c1 INTO r;
+ 20          EXIT WHEN c1%NOTFOUND;
+ 21
+ 22          c := c + 1;
+ 23      END LOOP;
+ 24
+ 25      DBMS_OUTPUT.PUT_LINE('Number of employees = '||c);
+ 26
+ 27      CLOSE c1;
+ 28
+ 29  EXCEPTION
+ 30      WHEN OTHERS THEN
+ 31          DBMS_OUTPUT.PUT_LINE('Error occurred');
+ 32  END;
+ 33  /
+Number of employees = 2
+
+PL/SQL procedure successfully completed.

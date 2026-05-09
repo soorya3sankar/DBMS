@@ -1,0 +1,822 @@
+1 — BEFORE INSERT on Employee 
+
+SQL> CREATE OR REPLACE TRIGGER before_insert_employee
+  2  BEFORE INSERT ON Employee
+  3  FOR EACH ROW
+  4  BEGIN
+  5      IF :NEW.EMPLOYEE_NAME IS NULL THEN
+  6          RAISE_APPLICATION_ERROR(-20001, 'Employee name cannot be null');
+  7      END IF;
+  8  END;
+  9  /
+
+Trigger created.
+
+SQL> INSERT INTO Employee(EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE, EMPLOYEE_TYPE, DATE_OF_JOIN, EXPERIENCE, DESIGNATION, SHIFT_DETAILS)
+  2  VALUES(20, 'RAVI', 101, 'Full-Time', SYSDATE, 3.0, 'Clerk', 'Morning');
+
+1 row created.
+
+SQL> INSERT INTO Employee(EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE, EMPLOYEE_TYPE, DATE_OF_JOIN, EXPERIENCE, DESIGNATION, SHIFT_DETAILS)
+  2  VALUES(21, NULL, 101, 'Full-Time', SYSDATE, 2.0, 'Clerk', 'Morning');
+INSERT INTO Employee(EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE, EMPLOYEE_TYPE, DATE_OF_JOIN, EXPERIENCE, DESIGNATION, SHIFT_DETAILS)
+            *
+ERROR at line 1:
+ORA-20001: Employee name cannot be null
+ORA-06512: at "SYSTEM.BEFORE_INSERT_EMPLOYEE", line 3
+ORA-04088: error during execution of trigger 'SYSTEM.BEFORE_INSERT_EMPLOYEE'
+
+
+2 — AFTER INSERT on Employee 
+
+SQL> CREATE OR REPLACE TRIGGER after_insert_employee
+  2  AFTER INSERT ON Employee
+  3  FOR EACH ROW
+  4  BEGIN
+  5      DBMS_OUTPUT.PUT_LINE('New employee inserted with ID: ' || :NEW.EMPLOYEE_ID);
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> SET SERVEROUTPUT ON;
+SQL> INSERT INTO Employee(EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE, EMPLOYEE_TYPE, DATE_OF_JOIN, EXPERIENCE, DESIGNATION, SHIFT_DETAILS)
+  2  VALUES(22, 'SIVA', 101, 'Contract', SYSDATE, 1.5, 'Sorting Staff', 'Evening');
+New employee inserted with ID: 22
+
+1 row created.
+
+
+3 before delete on movement status
+
+SQL> CREATE OR REPLACE TRIGGER trg_check_transit
+  2  BEFORE DELETE ON TravelRecord
+  3  FOR EACH ROW
+  4  BEGIN
+  5      IF :OLD.movement_status = 'In Transit' THEN
+  6          RAISE_APPLICATION_ERROR(-20001, 'Data Integrity Error: Cannot delete a bag while it is In Transit.');
+  7      END IF;
+  8  END;
+  9  /
+
+Trigger created.
+
+SQL> select movement_status from travelrecord where movement_record_no=1;
+
+MOVEMENT_STATUS
+-------------------------
+In Transit
+
+
+SQL> DELETE FROM TravelRecord WHERE movement_record_no = 1;
+DELETE FROM TravelRecord WHERE movement_record_no = 1
+            *
+ERROR at line 1:
+ORA-20001: Data Integrity Error: Cannot delete a bag while it is In Transit.
+ORA-06512: at "SYSTEM.TRG_CHECK_TRANSIT", line 3
+ORA-04088: error during execution of trigger 'SYSTEM.TRG_CHECK_TRANSIT'
+
+
+ 4 — AFTER DELETE on TravelRecord 
+
+SQL> CREATE OR REPLACE TRIGGER after_delete_travelrecord
+  2  AFTER DELETE ON TravelRecord
+  3  FOR EACH ROW
+  4  BEGIN
+  5      DBMS_OUTPUT.PUT_LINE('TravelRecord ' || :OLD.MOVEMENT_RECORD_NO || ' has been deleted.');
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> DELETE FROM TravelRecord WHERE MOVEMENT_RECORD_NO = 9003;
+TravelRecord 9003 has been deleted.
+
+1 row deleted.
+
+ 5 — BEFORE UPDATE on Employee
+
+SQL> CREATE OR REPLACE TRIGGER before_update_employee
+  2  BEFORE UPDATE ON Employee
+  3  FOR EACH ROW
+  4  BEGIN
+  5      IF :NEW.EXPERIENCE < 0 THEN
+  6          RAISE_APPLICATION_ERROR(-20003, 'Experience cannot be negative.');
+  7      END IF;
+  8  END;
+  9  /
+
+Trigger created.
+
+SQL> UPDATE Employee SET EXPERIENCE = -2 WHERE EMPLOYEE_ID = 10;
+UPDATE Employee SET EXPERIENCE = -2 WHERE EMPLOYEE_ID = 10
+       *
+ERROR at line 1:
+ORA-20003: Experience cannot be negative.
+ORA-06512: at "SYSTEM.BEFORE_UPDATE_EMPLOYEE", line 3
+ORA-04088: error during execution of trigger 'SYSTEM.BEFORE_UPDATE_EMPLOYEE'
+
+
+SQL> UPDATE Employee SET EXPERIENCE = 7.0 WHERE EMPLOYEE_ID = 10;
+
+1 row updated.
+
+
+ 6 — AFTER UPDATE on Employee
+
+SQL> CREATE OR REPLACE TRIGGER after_update_employee
+  2  AFTER UPDATE ON Employee
+  3  FOR EACH ROW
+  4  BEGIN
+  5      DBMS_OUTPUT.PUT_LINE('Employee ' || :OLD.EMPLOYEE_ID ||
+  6                           ' designation changed from ' || :OLD.DESIGNATION ||
+  7                           ' to ' || :NEW.DESIGNATION);
+  8  END;
+  9  /
+
+Trigger created.
+
+SQL> UPDATE Employee SET DESIGNATION = 'Senior Clerk' WHERE EMPLOYEE_ID = 12;
+Employee 12 designation changed from Clerk to Senior Clerk
+
+1 row updated.
+
+ 7 — COMPOUND TRIGGER on MailBag 
+
+SQL> CREATE OR REPLACE TRIGGER compound_trigger_mailbag
+  2  FOR INSERT OR DELETE ON MailBag
+  3  COMPOUND TRIGGER
+  4
+  5      v_count_change NUMBER := 1;
+  6
+  7      BEFORE EACH ROW IS
+  8      BEGIN
+  9          IF INSERTING THEN
+ 10              DBMS_OUTPUT.PUT_LINE('Preparing to insert MailBag: ' || :NEW.BAG_NUMBER);
+ 11          END IF;
+ 12      END BEFORE EACH ROW;
+ 13
+ 14      AFTER EACH ROW IS
+ 15      BEGIN
+ 16          IF DELETING THEN
+ 17              DBMS_OUTPUT.PUT_LINE('MailBag ' || :OLD.BAG_NUMBER || ' has been deleted.');
+ 18          END IF;
+ 19      END AFTER EACH ROW;
+ 20
+ 21  END compound_trigger_mailbag;
+ 22  /
+
+Trigger created.
+
+SQL> INSERT INTO MailBag(BAG_NUMBER, SERIAL_NUMBER, CAPACITY, ARTICLE_COUNT, SOURCE_OFFICE, DESTINATION_OFFICE, TRANSPORT_NUMBER)
+  2  VALUES(8001, 99001, 60, 20, 101, 102, 7001);
+Preparing to insert MailBag: 8001
+
+1 row created.
+
+SQL> DELETE FROM MailBag WHERE BAG_NUMBER = 8001;
+MailBag 8001 has been deleted.
+
+1 row deleted.
+
+
+8 — STATEMENT-LEVEL on TravelRecord 
+
+SQL> CREATE OR REPLACE TRIGGER statement_trigger_travelrecord
+  2  BEFORE INSERT OR DELETE ON TravelRecord
+  3  DECLARE
+  4      v_msg VARCHAR2(100);
+  5  BEGIN
+  6      IF INSERTING THEN
+  7          v_msg := 'A new travel record is being inserted into TravelRecord table.';
+  8      END IF;
+  9
+ 10      IF DELETING THEN
+ 11          v_msg := 'A travel record is being deleted from TravelRecord table.';
+ 12      END IF;
+ 13
+ 14      DBMS_OUTPUT.PUT_LINE(v_msg);
+ 15  END statement_trigger_travelrecord;
+ 16  /
+
+Trigger created.
+
+SQL> INSERT INTO TravelRecord(MOVEMENT_RECORD_NO, SEAL_VERIFICATION, MOVEMENT_STATUS, BAG_NUMBER, EMPLOYEE_ID)
+  2  VALUES(9010, 'Verified', 'IN TRANSIT', 1001, 2);
+A new travel record is being inserted into TravelRecord table.
+
+1 row created.
+
+SQL> DELETE FROM TravelRecord WHERE EMPLOYEE_ID = 1;
+A travel record is being deleted from TravelRecord table.
+TravelRecord 9001 has been deleted.
+
+1 row deleted.
+
+
+9 insertion when deletion happens
+
+SQL> CREATE OR REPLACE TRIGGER trg_archive_travelrecord
+  2  BEFORE DELETE ON TravelRecord
+  3  FOR EACH ROW
+  4  BEGIN
+  5      INSERT INTO Deleted_TravelRecord (
+  6          movement_record_no,
+  7          dispatch_time,
+  8          arrival_time,
+  9          seal_verification,
+ 10          movement_status,
+ 11          bag_number,
+ 12          employee_id
+ 13      )
+ 14      VALUES (
+ 15          :OLD.movement_record_no,
+ 16          :OLD.dispatch_time,
+ 17          :OLD.arrival_time,
+ 18          :OLD.seal_verification,
+ 19          :OLD.movement_status,
+ 20          :OLD.bag_number,
+ 21          :OLD.employee_id
+ 22      );
+ 23  END;
+ 24  /
+
+Trigger created.
+
+SQL> select * from travelrecord where movement_record_no=9010;
+
+MOVEMENT_RECORD_NO
+------------------
+DISPATCH_TIME
+---------------------------------------------------------------------------
+ARRIVAL_TIME
+---------------------------------------------------------------------------
+SEAL_VERIFICATION         MOVEMENT_STATUS           BAG_NUMBER EMPLOYEE_ID
+------------------------- ------------------------- ---------- -----------
+              9010
+
+
+Verified                  IN TRANSIT                      1001           2
+
+
+
+
+SQL> select * from deleted_travelrecord where movement_record_no=9010;
+
+no rows selected
+
+SQL> delete from travelrecord where movement_record_no=9010;
+
+1 row deleted.
+
+SQL> select * from deleted_travelrecord where movement_record_no=9010;
+
+MOVEMENT_RECORD_NO
+------------------
+DISPATCH_TIME
+---------------------------------------------------------------------------
+ARRIVAL_TIME
+---------------------------------------------------------------------------
+SEAL_VERIFICATION         MOVEMENT_STATUS           BAG_NUMBER EMPLOYEE_ID
+------------------------- ------------------------- ---------- -----------
+DELETION_DATE
+---------------------------------------------------------------------------
+              9010
+
+Verified                  IN TRANSIT                      1001           2
+18-MAR-26 11.50.59.429000 AM
+
+
+10 update inside the trigger 
+
+SQL> CREATE OR REPLACE TRIGGER trg_update_article_status
+  2  BEFORE UPDATE OF WEIGHT ON Article
+  3  FOR EACH ROW
+  4  BEGIN
+  5      IF :NEW.WEIGHT > 10 THEN
+  6          :NEW.CURRENT_STATUS := 'HEAVY - REVIEW NEEDED';
+  7      ELSE
+  8          :NEW.CURRENT_STATUS := 'STANDARD';
+  9      END IF;
+ 10  END;
+ 11  /
+
+Trigger created.
+
+SQL> SELECT ARTICLE_NO, WEIGHT, CURRENT_STATUS FROM Article WHERE ARTICLE_NO = 101;
+
+ARTICLE_NO     WEIGHT CURRENT_STATUS
+---------- ---------- -------------------------
+       101         50 PENDING
+
+SQL> UPDATE Article SET WEIGHT = 15 WHERE ARTICLE_NO = 101;
+
+1 row updated.
+
+SQL> SELECT ARTICLE_NO, WEIGHT, CURRENT_STATUS FROM Article WHERE ARTICLE_NO = 101;
+
+ARTICLE_NO     WEIGHT CURRENT_STATUS
+---------- ---------- -------------------------
+       101         15 HEAVY - REVIEW NEEDED
+
+SQL> UPDATE Article SET WEIGHT = 5 WHERE ARTICLE_NO = 101;
+
+1 row updated.
+
+SQL> SELECT ARTICLE_NO, WEIGHT, CURRENT_STATUS FROM Article WHERE ARTICLE_NO = 101;
+
+ARTICLE_NO     WEIGHT CURRENT_STATUS
+---------- ---------- -------------------------
+       101          5 STANDARD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+QP
+
+
+
+7 A 
+
+a :increase the marks of all students enrolled in courses taughts by ‘dr kumar ‘ by 10%
+
+SQL> SELECT * FROM enrolll
+  2  WHERE course_id IN (
+  3      SELECT course_id FROM teachess WHERE instructor_name = 'Dr Kumar'
+  4  );
+
+STUDENT_ID  COURSE_ID      MARKS
+---------- ---------- ----------
+         1        101         83
+         2        101         77
+         4        101         91
+         1        102         83
+         3        102         90
+
+SQL> UPDATE enrolll
+  2  SET marks = marks + (marks * 0.10)
+  3  WHERE course_id IN (
+  4      SELECT course_id FROM teachess WHERE instructor_name = 'Dr Kumar'
+  5  );
+
+5 rows updated.
+
+SQL> SELECT * FROM enrolll
+  2  WHERE course_id IN (
+  3      SELECT course_id FROM teachess WHERE instructor_name = 'Dr Kumar'
+  4  );
+
+STUDENT_ID  COURSE_ID      MARKS
+---------- ---------- ----------
+         1        101         91
+         2        101         85
+         4        101        100
+         1        102         91
+         3        102         99
+
+
+
+
+b: find the student name who has obtained the second highest marks .
+
+SQL> SELECT s.student_name, e.marks
+  2  FROM studentt s
+  3  JOIN enrolll e ON s.student_id = e.student_id
+  4  WHERE e.marks = (
+  5      SELECT MAX(marks)
+  6      FROM enrolll
+  7      WHERE marks < (SELECT MAX(marks) FROM enrolll)
+  8  );
+
+STUDENT_NAME                   MARKS
+------------------------- ----------
+Meena                            99
+
+
+
+c:find the course name where the marks obtained by students are greater than the average marks of all students
+
+SQL> SELECT DISTINCT c.course_name, e.marks
+  2  FROM coursee c
+  3  JOIN enrolll e ON c.course_id = e.course_id
+  4  WHERE e.marks > (SELECT AVG(marks) FROM enrolll);
+
+COURSE_NAME                    MARKS
+------------------------- ----------
+DBMS                              91
+DBMS                             100
+OS                                91
+OS                                99
+
+
+d:display the student name and city of students who obtained the highest marks .
+
+SQL> SELECT s.student_name, s.city, e.marks
+  2  FROM studentt s
+  3  JOIN enrolll e ON s.student_id = e.student_id
+  4  WHERE e.marks = (SELECT MAX(marks) FROM enrolll);
+
+STUDENT_NAME              CITY                           MARKS
+------------------------- ------------------------- ----------
+Kumar                     Trichy                           100
+
+
+e:what a pl/sql function to return the course name with the largest number of enrolled students .
+
+SQL> CREATE OR REPLACE FUNCTION max_course
+  2  RETURN VARCHAR2
+  3  IS
+  4      cname VARCHAR2(25);
+  5  BEGIN
+  6      SELECT course_name INTO cname
+  7      FROM coursee
+  8      WHERE course_id = (
+  9          SELECT course_id
+ 10          FROM enrolll
+ 11          GROUP BY course_id
+ 12          ORDER BY COUNT(*) DESC
+ 13          FETCH FIRST 1 ROW ONLY
+ 14      );
+ 15
+ 16      RETURN cname;
+ 17  END;
+ 18  /
+
+Function created.
+
+SQL> SELECT max_course FROM dual;
+
+MAX_COURSE
+--------------------------------------------------------------------------------
+DBMS
+
+
+SQL> SELECT c.course_name, COUNT(*) AS total_students
+  2  FROM enrolll e
+  3  JOIN coursee c ON e.course_id = c.course_id
+  4  GROUP BY c.course_name;
+
+COURSE_NAME               TOTAL_STUDENTS
+------------------------- --------------
+DBMS                                   3
+OS                                     2
+Networks                               1
+
+			=======================
+				7B 
+
+a:list the staff names who are working in building “A” block or “C” block (peform case insensitive search ).
+
+SQL> SELECT staff_name, block
+  2  FROM stafff
+  3  WHERE UPPER(block) IN ('A','C');
+
+STAFF_NAME                BLOCK
+------------------------- ----------
+Ram                       A
+Sita                      C
+
+
+
+B:retrive all book details for books with category “database “ or “datamining “and member details whose fine amount is greater than 500
+
+SQL> SELECT b.book_title, m.member_name, f.amount
+  2  FROM bookss b
+  3  JOIN borroww br ON b.book_id = br.book_id
+  4  JOIN memberss m ON m.member_id = br.member_id
+  5  JOIN finee f ON m.member_id = f.member_id
+  6  WHERE b.category IN ('Database','Datamining')
+  7  AND f.amount > 500;
+
+BOOK_TITLE                                         MEMBER_NAME
+-------------------------------------------------- -------------------------
+    AMOUNT
+----------
+DBMS Basics                                        Amit
+       600
+
+
+C:create a view to display member id ,member name and title of books borrowed by them .
+
+SQL> CREATE VIEW member_view AS
+  2  SELECT m.member_id, m.member_name, b.book_title
+  3  FROM memberss m
+  4  JOIN borroww br ON m.member_id = br.member_id
+  5  JOIN bookss b ON b.book_id = br.book_id;
+
+View created.
+
+SQL> SELECT * FROM member_view;
+
+ MEMBER_ID MEMBER_NAME
+---------- -------------------------
+BOOK_TITLE
+--------------------------------------------------
+         1 Amit
+DBMS Basics
+
+         2 John
+Mining Data
+
+
+
+
+D:write a procedure to insert a new book details into book relation .
+
+SQL> set serveroutput on;
+
+SQL> CREATE OR REPLACE PROCEDURE add_book(
+  2      id INT,
+  3      title VARCHAR2,
+  4      author VARCHAR2,
+  5      cat VARCHAR2,
+  6      price FLOAT
+  7  )
+  8  IS
+  9  BEGIN
+ 10      INSERT INTO bookss
+ 11      VALUES (id, title, author, cat, price);
+ 12  END;
+ 13  /
+
+Procedure created.
+
+SQL> BEGIN
+  2      add_book(10,'Python Basics','Guido','Programming',500);
+  3  END;
+  4  /
+
+PL/SQL procedure successfully completed.
+
+SQL> SELECT * FROM bookss;
+
+   BOOK_ID BOOK_TITLE
+---------- --------------------------------------------------
+AUTHOR                    CATEGORY                       PRICE
+------------------------- ------------------------- ----------
+         1 DBMS Basics
+Navathe                   Database                         500
+
+         2 Mining Data
+Han                       Datamining                       600
+
+         3 OS Concepts
+Galvin                    OS                               700
+
+
+   BOOK_ID BOOK_TITLE
+---------- --------------------------------------------------
+AUTHOR                    CATEGORY                       PRICE
+------------------------- ------------------------- ----------
+        10 Python Basics
+Guido                     Programming                      500
+
+
+
+E:create an index to retrive member details quickly based on the alphabetical order of their names.
+
+SQL> CREATE INDEX idx_member_name
+  2  ON memberss(member_name);
+
+Index created.
+
+
+
+
+
+
+
+
+HR
+
+
+
+
+
+
+self -I
+A)	Write a code in PL/SQL TO create a trigger that automatically updates a 'last_modified' timestamp whenever a row in a specific table is updated.
+
+9
+
+SQL> CREATE OR REPLACE TRIGGER trg_employee_last_modified
+  2  BEFORE UPDATE ON Employee
+  3  FOR EACH ROW
+  4  BEGIN
+  5      :NEW.LAST_MODIFIED := SYSDATE;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> SELECT EMPLOYEE_ID, EMPLOYEE_NAME, LAST_MODIFIED FROM Employee WHERE EMPLOYEE_ID = 10;
+
+EMPLOYEE_ID EMPLOYEE_NAME             LAST_MODI
+----------- ------------------------- ---------
+         10 ARUN
+
+SQL> UPDATE Employee SET DESIGNATION = 'Senior Manager' WHERE EMPLOYEE_ID = 10;
+
+1 row updated.
+
+SQL> SELECT EMPLOYEE_ID, EMPLOYEE_NAME, LAST_MODIFIED FROM Employee WHERE EMPLOYEE_ID = 10;
+
+EMPLOYEE_ID EMPLOYEE_NAME             LAST_MODI
+----------- ------------------------- ---------
+         10 ARUN                      18-MAR-26
+
+
+
+
+
+
+
+
+B)	Write a code in PL/SQL to create a trigger that prevents updates on a certain column during specific hours of the day.
+
+SQL> CREATE OR REPLACE TRIGGER trg_restrict_designation_update
+  2  BEFORE UPDATE OF DESIGNATION ON Employee
+  3  FOR EACH ROW
+  4  DECLARE
+  5      v_hour NUMBER;
+  6  BEGIN
+  7      v_hour := TO_NUMBER(TO_CHAR(SYSDATE, 'HH24'));
+  8
+  9      IF v_hour >= 9 AND v_hour < 18 THEN
+ 10          RAISE_APPLICATION_ERROR(-20010,
+ 11              'DESIGNATION cannot be updated during office hours (9 AM to 6 PM).');
+ 12      END IF;
+ 13  END;
+ 14  /
+
+Trigger created.
+
+SQL> UPDATE Employee SET DESIGNATION = 'Director' WHERE EMPLOYEE_ID = 1;
+UPDATE Employee SET DESIGNATION = 'Director' WHERE EMPLOYEE_ID = 1
+       *
+ERROR at line 1:
+ORA-20010: DESIGNATION cannot be updated during office hours (9 AM to 6 PM).
+ORA-06512: at "SYSTEM.TRG_RESTRICT_DESIGNATION_UPDATE", line 7
+ORA-04088: error during execution of trigger
+'SYSTEM.TRG_RESTRICT_DESIGNATION_UPDATE'
+
+
+SQL> UPDATE Employee SET DESIGNATION = 'Director' WHERE EMPLOYEE_ID = 1;
+
+1 row updated.
+
+SQL> select designation from employee where employee_id=1;
+
+DESIGNATION
+-------------------------
+Director
+
+
+
+Self - II:
+A)	Write a code in PL/SQL to develop a trigger that enforces referential integrity by preventing the deletion of a parent record if child records exist.
+
+
+SQL> CREATE OR REPLACE TRIGGER trg_prevent_employee_delete
+  2  BEFORE DELETE ON Employee
+  3  FOR EACH ROW
+  4  DECLARE
+  5      v_count INTEGER;
+  6  BEGIN
+  7      SELECT COUNT(*) INTO v_count
+  8      FROM TravelRecord
+  9      WHERE EMPLOYEE_ID = :OLD.EMPLOYEE_ID;
+ 10
+ 11      IF v_count > 0 THEN
+ 12          RAISE_APPLICATION_ERROR(-20020,
+ 13              'Cannot delete Employee ID ' || :OLD.EMPLOYEE_ID ||
+ 14              '. Child records exist in TravelRecord.');
+ 15      END IF;
+ 16  END;
+ 17  /
+
+Trigger created.
+
+
+SQL> DELETE FROM Employee WHERE EMPLOYEE_ID = 1;
+DELETE FROM Employee WHERE EMPLOYEE_ID = 1
+            *
+ERROR at line 1:
+ORA-20002: ERROR: Cannot delete employee. Travel records exist for this
+employee.
+ORA-06512: at "SYSTEM.TRG_PREVENT_EMPLOYEE_DELETE", line 9
+ORA-04088: error during execution of trigger
+'SYSTEM.TRG_PREVENT_EMPLOYEE_DELETE'
+
+
+SQL> DELETE FROM Employee WHERE EMPLOYEE_ID = 200;
+
+1 row deleted.
+
+
+
+
+
+B)	Write a code in PL/SQL to create a trigger that checks for duplicate values in a specific column and raises an exception if found.
+
+SQL> CREATE OR REPLACE TRIGGER trg_prevent_duplicate_name
+  2  BEFORE INSERT ON Employee
+  3  FOR EACH ROW
+  4  DECLARE
+  5      v_count INTEGER;
+  6  BEGIN
+  7      SELECT COUNT(*) INTO v_count
+  8      FROM Employee
+  9      WHERE EMPLOYEE_NAME = :NEW.EMPLOYEE_NAME;
+ 10
+ 11      IF v_count > 0 THEN
+ 12          RAISE_APPLICATION_ERROR(-20030,
+ 13              'Duplicate employee name: ' || :NEW.EMPLOYEE_NAME ||
+ 14              ' already exists in Employee table.');
+ 15      END IF;
+ 16  END;
+ 17  /
+
+Trigger created.
+
+SQL> INSERT INTO Employee (EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE)
+  2  VALUES (100, 'ARUN', 101);
+INSERT INTO Employee (EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE)
+            *
+ERROR at line 1:
+ORA-20030: Duplicate employee name: ARUN already exists in Employee table.
+ORA-06512: at "SYSTEM.TRG_PREVENT_DUPLICATE_NAME", line 9
+ORA-04088: error during execution of trigger
+'SYSTEM.TRG_PREVENT_DUPLICATE_NAME'
+
+
+SQL> INSERT INTO Employee (EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE)
+  2  VALUES (101, 'NEHA', 101);
+
+1 row created.
+
+SQL> SELECT EMPLOYEE_ID, EMPLOYEE_NAME FROM Employee WHERE EMPLOYEE_ID = 101;
+
+EMPLOYEE_ID EMPLOYEE_NAME
+----------- -------------------------
+        101 NEHA
+
+
+seld III
+
+A)	Write a code in PL/SQL to create a trigger that validates the availability of items before allowing an order to be placed, considering stock levels and pending orders.
+
+SQL> CREATE OR REPLACE TRIGGER trg_check_mailbag_capacity
+  2  BEFORE INSERT ON MailBag
+  3  FOR EACH ROW
+  4  BEGIN
+  5      IF :NEW.ARTICLE_COUNT > :NEW.CAPACITY THEN
+  6          RAISE_APPLICATION_ERROR(-20040,
+  7              'Cannot place order. Article count (' || :NEW.ARTICLE_COUNT ||
+  8              ') exceeds bag capacity (' || :NEW.CAPACITY || ').');
+  9      END IF;
+ 10  END;
+ 11  /
+
+Trigger created.
+
+SQL> INSERT INTO MailBag (BAG_NUMBER, SERIAL_NUMBER, CAPACITY, ARTICLE_COUNT, SOURCE_OFFICE, DESTINATION_OFFICE)
+  2  VALUES (9999, 11111, 30, 50, 101, 102);
+INSERT INTO MailBag (BAG_NUMBER, SERIAL_NUMBER, CAPACITY, ARTICLE_COUNT, SOURCE_OFFICE, DESTINATION_OFFICE)
+            *
+ERROR at line 1:
+ORA-20040: Cannot place order. Article count (50) exceeds bag capacity (30).
+ORA-06512: at "SYSTEM.TRG_CHECK_MAILBAG_CAPACITY", line 3
+ORA-04088: error during execution of trigger
+'SYSTEM.TRG_CHECK_MAILBAG_CAPACITY'
+
+
+SQL> INSERT INTO MailBag (BAG_NUMBER, SERIAL_NUMBER, CAPACITY, ARTICLE_COUNT, SOURCE_OFFICE, DESTINATION_OFFICE)
+  2  VALUES (8888, 22222, 50, 10, 101, 102);
+
+1 row created.
+
+SQL> SELECT BAG_NUMBER, CAPACITY, ARTICLE_COUNT FROM MailBag WHERE BAG_NUMBER = 8888;
+
+BAG_NUMBER   CAPACITY ARTICLE_COUNT
+---------- ---------- -------------
+      8888         50            10
+
+SQL>
+
+
+
+
+
+

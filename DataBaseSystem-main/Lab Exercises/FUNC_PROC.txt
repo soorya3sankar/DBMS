@@ -1,0 +1,1165 @@
+SQL> set serveroutput on;
+
+1)Function Without Parameters — Get Total Number of Employees
+
+SQL> CREATE OR REPLACE FUNCTION get_total_employees
+  2      RETURN NUMBER
+  3  IS
+  4      v_total NUMBER;
+  5  BEGIN
+  6      SELECT COUNT(*) INTO v_total
+  7      FROM Employee;
+  8      RETURN v_total;
+  9  EXCEPTION
+ 10      WHEN OTHERS THEN
+ 11          RETURN 0;
+ 12  END get_total_employees;
+ 13  /
+
+Function created.
+
+SQL> SELECT get_total_employees FROM DUAL;
+
+GET_TOTAL_EMPLOYEES
+-------------------
+                 16
+
+2)Simple Function With One Parameter — Get Employee Designation
+
+SQL> CREATE OR REPLACE FUNCTION get_designation(p_emp_id IN NUMBER)
+  2      RETURN VARCHAR2
+  3  IS
+  4      v_designation VARCHAR2(25);
+  5  BEGIN
+  6      SELECT DESIGNATION INTO v_designation
+  7      FROM Employee
+  8      WHERE EMPLOYEE_ID = p_emp_id;
+  9      RETURN v_designation;
+ 10  EXCEPTION
+ 11      WHEN NO_DATA_FOUND THEN
+ 12          RETURN 'NOT FOUND';
+ 13      WHEN OTHERS THEN
+ 14          RETURN NULL;
+ 15  END get_designation;
+ 16  /
+
+Function created.
+
+SQL> SELECT get_designation(1) FROM DUAL;
+
+GET_DESIGNATION(1)
+--------------------------------------------------------------------------------
+Director
+
+3)Function With Multiple Parameters — Count Employees by Office and Experience
+SQL> CREATE OR REPLACE FUNCTION get_employees_by_experience(
+  2      p_office_code IN NUMBER,
+  3      p_experience  IN FLOAT
+  4  ) RETURN NUMBER
+  5  IS
+  6      v_count NUMBER;
+  7  BEGIN
+  8      SELECT COUNT(*) INTO v_count
+  9      FROM Employee
+ 10      WHERE OFFICE_CODE = p_office_code AND EXPERIENCE > p_experience;
+ 11      RETURN v_count;
+ 12  END get_employees_by_experience;
+ 13  /
+
+Function created.
+
+SQL> SELECT get_employees_by_experience(101, 3) FROM DUAL;
+
+GET_EMPLOYEES_BY_EXPERIENCE(101,3)
+----------------------------------
+                                 9
+
+4)Function Returning a Record (ROWTYPE) — Get Full Employee Record
+SQL> CREATE OR REPLACE FUNCTION get_employee_record(p_emp_id IN NUMBER)
+  2      RETURN Employee%ROWTYPE
+  3  IS
+  4      v_employee Employee%ROWTYPE;
+  5  BEGIN
+  6      SELECT * INTO v_employee
+  7      FROM Employee
+  8      WHERE EMPLOYEE_ID = p_emp_id;
+  9      RETURN v_employee;
+ 10  EXCEPTION
+ 11      WHEN NO_DATA_FOUND THEN
+ 12          RETURN NULL;
+ 13      WHEN OTHERS THEN
+ 14          RETURN NULL;
+ 15  END get_employee_record;
+ 16  /
+
+Function created.
+
+SQL> DECLARE
+  2      v_emp Employee%ROWTYPE;
+  3  BEGIN
+  4      v_emp := get_employee_record(1);
+  5      IF v_emp.EMPLOYEE_ID IS NOT NULL THEN
+  6          DBMS_OUTPUT.PUT_LINE('ID: '          || v_emp.EMPLOYEE_ID);
+  7          DBMS_OUTPUT.PUT_LINE('Name: '        || v_emp.EMPLOYEE_NAME);
+  8          DBMS_OUTPUT.PUT_LINE('Designation: ' || v_emp.DESIGNATION);
+  9      ELSE
+ 10          DBMS_OUTPUT.PUT_LINE('No record found.');
+ 11      END IF;
+ 12  END;
+ 13  /
+ID: 1
+Name: RAMESH
+Designation: Director
+
+PL/SQL procedure successfully completed.
+
+5)Function Returning a Table Using REF CURSOR
+SQL> CREATE OR REPLACE FUNCTION get_all_employees
+  2      RETURN SYS_REFCURSOR
+  3  IS
+  4      v_cursor SYS_REFCURSOR;
+  5  BEGIN
+  6      OPEN v_cursor FOR
+  7          SELECT EMPLOYEE_ID,
+  8                 EMPLOYEE_NAME,
+  9                 DESIGNATION
+ 10          FROM Employee;
+ 11      RETURN v_cursor;
+ 12  END get_all_employees;
+ 13  /
+
+Function created.
+
+SQL> DECLARE
+  2      v_cursor SYS_REFCURSOR;
+  3      v_id     Employee.EMPLOYEE_ID%TYPE;
+  4      v_name   Employee.EMPLOYEE_NAME%TYPE;
+  5      v_desig  Employee.DESIGNATION%TYPE;
+  6  BEGIN
+  7      v_cursor := get_all_employees;
+  8      LOOP
+  9          FETCH v_cursor INTO v_id, v_name, v_desig;
+ 10          EXIT WHEN v_cursor%NOTFOUND;
+ 11          DBMS_OUTPUT.PUT_LINE('ID: '          || v_id);
+ 12          DBMS_OUTPUT.PUT_LINE('Name: '        || v_name);
+ 13          DBMS_OUTPUT.PUT_LINE('Designation: ' || NVL(v_desig, 'N/A'));
+ 14          DBMS_OUTPUT.PUT_LINE('----------------------');
+ 15      END LOOP;
+ 16      CLOSE v_cursor;
+ 17  END;
+ 18  /
+ID: 11
+Name: RAM
+Designation: POSTMASTER
+----------------------
+ID: 10
+Name: ARUN
+Designation: Senior Manager
+----------------------
+ID: 12
+Name: KAVI
+Designation: Senior Clerk
+----------------------
+ID: 14
+Name: SARUN
+Designation: Clerk
+----------------------
+ID: 1
+Name: RAMESH
+Designation: Director
+----------------------
+ID: 2
+Name: SURESH
+Designation: SUPERVISOR
+----------------------
+ID: 5
+Name: ARUN
+Designation: SORTING STAFF
+----------------------
+ID: 15
+Name: VARUN
+Designation: Clerk
+----------------------
+ID: 16
+Name: MARUN
+Designation: Clerk
+----------------------
+ID: 20
+Name: RAVI
+Designation: Clerk
+----------------------
+ID: 22
+Name: SIVA
+Designation: Sorting Staff
+----------------------
+ID: 999
+Name: Temp
+Designation: N/A
+----------------------
+ID: 101
+Name: NEHA
+Designation: N/A
+----------------------
+ID: 201
+Name: PRIYA
+Designation: CLERK
+----------------------
+ID: 1001
+Name: JOHN DOE
+Designation: MANAGER
+----------------------
+ID: 202
+Name: DIVYA
+Designation: ANALYST
+----------------------
+ID: 301
+Name: TEST EMP
+Designation: N/A
+----------------------
+
+PL/SQL procedure successfully completed.
+
+6)Recursive Function — Calculate Factorial
+SQL> CREATE OR REPLACE FUNCTION get_factorial(n IN NUMBER)
+  2      RETURN NUMBER
+  3  IS
+  4  BEGIN
+  5      IF n <= 1 THEN
+  6          RETURN 1;
+  7      ELSE
+  8          RETURN n * get_factorial(n - 1);
+  9      END IF;
+ 10  END get_factorial;
+ 11  /
+
+Function created.
+
+
+SQL> SELECT get_factorial(5) FROM DUAL;
+
+GET_FACTORIAL(5)
+----------------
+             120
+
+7)String Manipulation — Reverse a String
+SQL> CREATE OR REPLACE FUNCTION reverse_string(p_str IN VARCHAR2)
+  2      RETURN VARCHAR2
+  3  IS
+  4      v_rev VARCHAR2(4000);
+  5  BEGIN
+  6      FOR i IN REVERSE 1..LENGTH(p_str) LOOP
+  7          v_rev := v_rev || SUBSTR(p_str, i, 1);
+  8      END LOOP;
+  9      RETURN v_rev;
+ 10  END reverse_string;
+ 11  /
+
+Function created.
+
+
+SQL> SELECT EMPLOYEE_NAME FROM Employee WHERE EMPLOYEE_ID = 1;
+
+EMPLOYEE_NAME
+-------------------------
+RAMESH
+
+SQL> SELECT reverse_string(EMPLOYEE_NAME) FROM Employee WHERE EMPLOYEE_ID = 1;
+
+REVERSE_STRING(EMPLOYEE_NAME)
+--------------------------------------------------------------------------------
+HSEMAR
+
+8)Date Logic — Calculate Years of Service
+SQL> CREATE OR REPLACE FUNCTION get_years_service(p_hire_date IN DATE)
+  2      RETURN NUMBER
+  3  IS
+  4  BEGIN
+  5      RETURN FLOOR(MONTHS_BETWEEN(SYSDATE, p_hire_date) / 12);
+  6  END get_years_service;
+  7  /
+
+Function created.
+
+SQL> SELECT get_years_service(DATE_OF_JOIN) FROM Employee WHERE EMPLOYEE_ID = 1;
+
+GET_YEARS_SERVICE(DATE_OF_JOIN)
+-------------------------------
+                             10
+
+9) Check if Email is Valid  ,returning boolean
+SQL> CREATE OR REPLACE FUNCTION is_valid_email(p_email IN VARCHAR2)
+  2      RETURN NUMBER
+  3  IS
+  4  BEGIN
+  5      IF p_email LIKE '%@%.%' THEN
+  6          RETURN 1;
+  7      ELSE
+  8          RETURN 0;
+  9      END IF;
+ 10  END is_valid_email;
+ 11  /
+
+Function created.
+
+SQL> BEGIN
+  2      DBMS_OUTPUT.PUT_LINE(is_valid_email('ramesh@post.com'));
+  3  END;
+  4  /
+1
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2      DBMS_OUTPUT.PUT_LINE(is_valid_email('invalidemail'));
+  3  END;
+  4  /
+0
+
+10)Conditional Formatting — Get Performance Rating
+SQL> CREATE OR REPLACE FUNCTION get_rating_text(p_score IN NUMBER)
+  2      RETURN VARCHAR2
+  3  IS
+  4  BEGIN
+  5      RETURN CASE
+  6          WHEN p_score >= 90 THEN 'EXCELLENT'
+  7          WHEN p_score >= 75 THEN 'GOOD'
+  8          ELSE 'NEEDS IMPROVEMENT'
+  9      END;
+ 10  END get_rating_text;
+ 11  /
+
+Function created.
+
+
+SQL> BEGIN
+  2      DBMS_OUTPUT.PUT_LINE(get_rating_text(95));
+  3  END;
+  4  /
+EXCELLENT
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2      DBMS_OUTPUT.PUT_LINE(get_rating_text(80));
+  3  END;
+  4  /
+GOOD
+
+PL/SQL procedure successfully completed.
+
+SQL> BEGIN
+  2      DBMS_OUTPUT.PUT_LINE(get_rating_text(60));
+  3  END;
+  4  /
+NEEDS IMPROVEMENT
+
+procedures
+
+1)Simple Procedure — No Parameters — Insert a Row into Employee
+SQL> CREATE OR REPLACE PROCEDURE simple_proc
+  2  IS
+  3  BEGIN
+  4      INSERT INTO Employee (EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE, EMPLOYEE_TYPE, DESIGNATION)
+  5      VALUES (1001, 'JOHN DOE', 101, 'FULL TIME', 'MANAGER');
+  6      COMMIT;
+  7  END simple_proc;
+  8  /
+
+Procedure created.
+
+
+SQL> EXEC simple_proc;
+New employee inserted with ID: 1001
+
+PL/SQL procedure successfully completed.
+
+SQL> SELECT * FROM Employee WHERE EMPLOYEE_ID = 1001;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_J EXPERIENCE DESIGNATION
+------------------------- --------- ---------- -------------------------
+SHIFT_DETAILS             LAST_MODI
+------------------------- ---------
+EMAIL
+--------------------------------------------------------------------------------
+    SALARY STATUS               LAST_LOGI
+---------- -------------------- ---------
+       1001 JOHN DOE                          101
+FULL TIME                                      MANAGER
+
+
+2)Procedure With IN Parameters — Insert Employee with Given Values
+SQL> CREATE OR REPLACE PROCEDURE proc_with_in_param(
+  2      p_emp_id   IN NUMBER,
+  3      p_emp_name IN VARCHAR2,
+  4      p_office   IN NUMBER,
+  5      p_desig    IN VARCHAR2
+  6  )
+  7  IS
+  8  BEGIN
+  9      INSERT INTO Employee (EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE, DESIGNATION)
+ 10      VALUES (p_emp_id, p_emp_name, p_office, p_desig);
+ 11      COMMIT;
+ 12  END proc_with_in_param;
+ 13  /
+
+Procedure created.
+
+SQL> EXEC proc_with_in_param(201, 'PRIYA', 101, 'CLERK');
+New employee inserted with ID: 201
+
+PL/SQL procedure successfully completed.
+
+SQL> SELECT * FROM Employee WHERE EMPLOYEE_ID=201;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_J EXPERIENCE DESIGNATION
+------------------------- --------- ---------- -------------------------
+SHIFT_DETAILS             LAST_MODI
+------------------------- ---------
+EMAIL
+--------------------------------------------------------------------------------
+    SALARY STATUS               LAST_LOGI
+---------- -------------------- ---------
+        201 PRIYA                             101
+                                               CLERK
+                          31-MAR-26
+
+
+
+3)Procedure With OUT Parameters — Retrieve Employee Experience
+SQL> CREATE OR REPLACE PROCEDURE proc_with_out_param(
+  2      p_emp_id     IN NUMBER,
+  3      p_experience OUT FLOAT
+  4  )
+  5  IS
+  6  BEGIN
+  7      SELECT EXPERIENCE INTO p_experience
+  8      FROM Employee
+  9      WHERE EMPLOYEE_ID = p_emp_id;
+ 10  END proc_with_out_param;
+ 11  /
+
+Procedure created.
+
+SQL> DECLARE
+  2      v_exp FLOAT;
+  3  BEGIN
+  4      proc_with_out_param(2, v_exp);
+  5      DBMS_OUTPUT.PUT_LINE('Experience: ' || v_exp);
+  6  END;
+  7  /
+Experience: 15.55
+
+PL/SQL procedure successfully completed.
+
+4)Procedure With IN OUT Parameters — Update and Return Experience
+SQL> CREATE OR REPLACE PROCEDURE proc_with_in_out_param(
+  2      p_emp_id     IN OUT NUMBER,
+  3      p_experience IN OUT FLOAT
+  4  )
+  5  IS
+  6  BEGIN
+  7      UPDATE Employee
+  8      SET EXPERIENCE = p_experience + 1
+  9      WHERE EMPLOYEE_ID = p_emp_id;
+ 10      SELECT EXPERIENCE INTO p_experience
+ 11      FROM Employee
+ 12      WHERE EMPLOYEE_ID = p_emp_id;
+ 13  END proc_with_in_out_param;
+ 14  /
+
+Procedure created.
+
+SQL> DECLARE
+  2      v_id  NUMBER := 5;
+  3      v_exp FLOAT  := 4.258;
+  4  BEGIN
+  5      proc_with_in_out_param(v_id, v_exp);
+  6      DBMS_OUTPUT.PUT_LINE('Updated Experience: ' || v_exp);
+  7  END;
+  8  /
+Employee 5 designation changed from SORTING STAFF to SORTING STAFF
+Updated Experience: 5.258
+
+PL/SQL procedure successfully completed.
+
+5)Procedure Returning a REF CURSOR — Fetch All Employees
+SQL> CREATE OR REPLACE PROCEDURE proc_with_ref_cursor(
+  2      p_cursor OUT SYS_REFCURSOR
+  3  )
+  4  IS
+  5  BEGIN
+  6      OPEN p_cursor FOR
+  7          SELECT EMPLOYEE_ID,
+  8                 EMPLOYEE_NAME,
+  9                 DESIGNATION
+ 10          FROM Employee;
+ 11  END proc_with_ref_cursor;
+ 12  /
+
+Procedure created.
+
+SQL> DECLARE
+  2      v_cursor SYS_REFCURSOR;
+  3      v_id     Employee.EMPLOYEE_ID%TYPE;
+  4      v_name   Employee.EMPLOYEE_NAME%TYPE;
+  5      v_desig  Employee.DESIGNATION%TYPE;
+  6  BEGIN
+  7      proc_with_ref_cursor(v_cursor);
+  8      LOOP
+  9          FETCH v_cursor INTO v_id, v_name, v_desig;
+ 10          EXIT WHEN v_cursor%NOTFOUND;
+ 11          DBMS_OUTPUT.PUT_LINE('ID: '          || v_id);
+ 12          DBMS_OUTPUT.PUT_LINE('Name: '        || v_name);
+ 13          DBMS_OUTPUT.PUT_LINE('Designation: ' || NVL(v_desig, 'N/A'));
+ 14          DBMS_OUTPUT.PUT_LINE('----------------------');
+ 15      END LOOP;
+ 16      CLOSE v_cursor;
+ 17  END;
+ 18  /
+ID: 11
+Name: RAM
+Designation: POSTMASTER
+----------------------
+ID: 10
+Name: ARUN
+Designation: Senior Manager
+----------------------
+ID: 12
+Name: KAVI
+Designation: Senior Clerk
+----------------------
+ID: 14
+Name: SARUN
+Designation: Clerk
+----------------------
+ID: 1
+Name: RAMESH
+Designation: Director
+----------------------
+ID: 2
+Name: SURESH
+Designation: SUPERVISOR
+----------------------
+ID: 5
+Name: ARUN
+Designation: SORTING STAFF
+----------------------
+ID: 15
+Name: VARUN
+Designation: Clerk
+----------------------
+ID: 16
+Name: MARUN
+Designation: Clerk
+----------------------
+ID: 20
+Name: RAVI
+Designation: Clerk
+----------------------
+ID: 22
+Name: SIVA
+Designation: Sorting Staff
+----------------------
+ID: 999
+Name: Temp
+Designation: N/A
+----------------------
+ID: 101
+Name: NEHA
+Designation: N/A
+----------------------
+ID: 201
+Name: PRIYA
+Designation: CLERK
+----------------------
+ID: 1001
+Name: JOHN DOE
+Designation: MANAGER
+----------------------
+ID: 202
+Name: DIVYA
+Designation: ANALYST
+----------------------
+ID: 301
+Name: TEST EMP
+Designation: N/A
+----------------------
+
+PL/SQL procedure successfully completed.
+
+
+
+
+6)Procedure With Exception Handling — Insert with Duplicate Check
+SQL> CREATE OR REPLACE PROCEDURE proc_with_exception_handling(
+  2      p_emp_id   IN NUMBER,
+  3      p_emp_name IN VARCHAR2,
+  4      p_office   IN NUMBER
+  5  )
+  6  IS
+  7  BEGIN
+  8      INSERT INTO Employee (EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE)
+  9      VALUES (p_emp_id, p_emp_name, p_office);
+ 10      COMMIT;
+ 11  EXCEPTION
+ 12      WHEN DUP_VAL_ON_INDEX THEN
+ 13          DBMS_OUTPUT.PUT_LINE('Error: Duplicate Employee ID.');
+ 14      WHEN OTHERS THEN
+ 15          DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+ 16  END proc_with_exception_handling;
+ 17  /
+
+Procedure created.
+
+SQL> EXEC proc_with_exception_handling(301, 'TEST EMP', 101);
+New employee inserted with ID: 301
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC proc_with_exception_handling(1, 'RAMESH', 101);
+Error: ORA-20030: Duplicate employee name: RAMESH already exists in Employee
+table.
+ORA-06512: at "SYSTEM.TRG_PREVENT_DUPLICATE_NAME", line 9
+ORA-04088:
+error during execution of trigger 'SYSTEM.TRG_PREVENT_DUPLICATE_NAME'
+
+PL/SQL procedure successfully completed.
+
+
+7)Procedure with Default Parameters — Add Office
+SQL> CREATE OR REPLACE PROCEDURE add_office(
+  2      p_code IN NUMBER,
+  3      p_loc  IN VARCHAR2 DEFAULT 'HEAD OFFICE'
+  4  ) IS
+  5  BEGIN
+  6      INSERT INTO Offices (OFFICE_CODE, LOCATION) VALUES (p_code, p_loc);
+  7      COMMIT;
+  8  END add_office;
+  9  /
+
+Procedure created.
+
+SQL> EXEC add_office(201);
+
+PL/SQL procedure successfully completed.
+
+SQL> EXEC add_office(202, 'BRANCH OFFICE');
+
+PL/SQL procedure successfully completed.
+
+SQL> SELECT * FROM Offices;
+
+OFFICE_CODE
+-----------
+LOCATION
+--------------------------------------------------------------------------------
+        101
+CHENNAI HEAD OFFICE
+
+        201
+HEAD OFFICE
+
+        202
+BRANCH OFFICE
+
+8)Bulk Update Procedure — Annual Raise
+SQL> CREATE OR REPLACE PROCEDURE apply_salary_raise(p_percent IN NUMBER)
+  2  IS
+  3  BEGIN
+  4      UPDATE Employee SET SALARY = SALARY + (SALARY * (p_percent/100));
+  5      DBMS_OUTPUT.PUT_LINE(SQL%ROWCOUNT || ' employees received a raise.');
+  6      COMMIT;
+  7  END apply_salary_raise;
+  8  /
+
+Procedure created.
+
+SQL> EXEC apply_salary_raise(10);
+Employee 11 designation changed from POSTMASTER to POSTMASTER
+Employee 10 designation changed from Senior Manager to Senior Manager
+Employee 12 designation changed from Senior Clerk to Senior Clerk
+Employee 13 designation changed from Clerk to Clerk
+Employee 14 designation changed from Clerk to Clerk
+Employee 1 designation changed from Director to Director
+Employee 2 designation changed from SUPERVISOR to SUPERVISOR
+Employee 3 designation changed from Clerk to Clerk
+Employee 4 designation changed from DELIVERY STAFF to DELIVERY STAFF
+Employee 5 designation changed from SORTING STAFF to SORTING STAFF
+Employee 15 designation changed from Clerk to Clerk
+Employee 16 designation changed from Clerk to Clerk
+Employee 20 designation changed from Clerk to Clerk
+Employee 22 designation changed from Sorting Staff to Sorting Staff
+Employee 999 designation changed from  to
+Employee 101 designation changed from  to
+Employee 201 designation changed from CLERK to CLERK
+Employee 1001 designation changed from MANAGER to MANAGER
+Employee 202 designation changed from ANALYST to ANALYST
+Employee 301 designation changed from  to
+20 employees received a raise.
+
+PL/SQL procedure successfully completed
+
+9)Procedure using %TYPE — Fetch Email by ID
+SQL> CREATE OR REPLACE PROCEDURE get_emp_email(
+  2      p_id    IN  Employee.EMPLOYEE_ID%TYPE,
+  3      p_email OUT Employee.EMAIL%TYPE
+  4  ) IS
+  5  BEGIN
+  6      SELECT EMAIL INTO p_email FROM Employee WHERE EMPLOYEE_ID = p_id;
+  7  EXCEPTION
+  8      WHEN NO_DATA_FOUND THEN
+  9          p_email := 'no-email@company.com';
+ 10  END get_emp_email;
+ 11  /
+
+Procedure created.
+
+SQL> DECLARE
+  2      v_email Employee.EMAIL%TYPE;
+  3  BEGIN
+  4      get_emp_email(1, v_email);
+  5      DBMS_OUTPUT.PUT_LINE('Email: ' || v_email);
+  6  END;
+  7  /
+Email: ramesh@post.com
+
+PL/SQL procedure successfully completed.
+
+SQL> DECLARE
+  2      v_email Employee.EMAIL%TYPE;
+  3  BEGIN
+  4      get_emp_email(9999, v_email);
+  5      DBMS_OUTPUT.PUT_LINE('Email: ' || v_email);
+  6  END;
+  7  /
+Email: no-email@company.com
+
+PL/SQL procedure successfully completed.
+
+
+10)Transaction Control — Transfer Employee
+SQL> CREATE OR REPLACE PROCEDURE transfer_employee(
+  2      p_emp_id   IN NUMBER,
+  3      p_new_off  IN NUMBER
+  4  ) IS
+  5  BEGIN
+  6      UPDATE Employee SET OFFICE_CODE = p_new_off WHERE EMPLOYEE_ID = p_emp_id;
+  7      INSERT INTO Transfer_Log(EMP_ID, TRANSFER_DATE) VALUES (p_emp_id, SYSDATE);
+  8      COMMIT;
+  9  EXCEPTION
+ 10      WHEN OTHERS THEN
+ 11          ROLLBACK;
+ 12          RAISE_APPLICATION_ERROR(-20001, 'Transfer failed.');
+ 13  END transfer_employee;
+ 14  /
+
+Procedure created.
+
+SQL> EXEC transfer_employee(11, 102);
+Employee 11 designation changed from POSTMASTER to POSTMASTER
+
+PL/SQL procedure successfully completed.
+
+SQL> SELECT OFFICE_CODE FROM Employee WHERE EMPLOYEE_ID = 11;
+
+OFFICE_CODE
+-----------
+        102
+
+SQL> SELECT * FROM Transfer_Log;
+
+    EMP_ID TRANSFER_
+---------- ---------
+        11 31-MAR-26
+
+
+
+
+
+
+HACCKER RANK
+
+SELF 1 ) A    Write a PL/SQL procedure to display the employee IDs, names, job titles, hire dates, and salaries of all employees.
+SQL> CREATE OR REPLACE PROCEDURE display_all_employees
+  2  IS
+  3      CURSOR emp_cur IS
+  4          SELECT EMPLOYEE_ID,
+  5                 EMPLOYEE_NAME,
+  6                 DESIGNATION,
+  7                 DATE_OF_JOIN,
+  8                 SALARY
+  9          FROM Employee
+ 10          ORDER BY EMPLOYEE_ID;
+ 11
+ 12      v_id    Employee.EMPLOYEE_ID%TYPE;
+ 13      v_name  Employee.EMPLOYEE_NAME%TYPE;
+ 14      v_desig Employee.DESIGNATION%TYPE;
+ 15      v_doj   Employee.DATE_OF_JOIN%TYPE;
+ 16      v_sal   Employee.SALARY%TYPE;
+ 17  BEGIN
+ 18      DBMS_OUTPUT.PUT_LINE('----------------------------------------------------------');
+ 19      DBMS_OUTPUT.PUT_LINE('EMP_ID | NAME       | JOB TITLE       | HIRE DATE | SALARY');
+ 20      DBMS_OUTPUT.PUT_LINE('----------------------------------------------------------');
+ 21
+ 22      OPEN emp_cur;
+ 23      LOOP
+ 24          FETCH emp_cur INTO v_id, v_name, v_desig, v_doj, v_sal;
+ 25          EXIT WHEN emp_cur%NOTFOUND;
+ 26          DBMS_OUTPUT.PUT_LINE(
+ 27              v_id   || ' | ' ||
+ 28              RPAD(v_name,  10) || ' | ' ||
+ 29              RPAD(NVL(v_desig, 'N/A'), 15) || ' | ' ||
+ 30              TO_CHAR(v_doj, 'DD-MON-YY') || ' | ' ||
+ 31              NVL(TO_CHAR(v_sal), 'N/A')
+ 32          );
+ 33      END LOOP;
+ 34      CLOSE emp_cur;
+ 35
+ 36      DBMS_OUTPUT.PUT_LINE('----------------------------------------------------------');
+ 37  END display_all_employees;
+ 38  /
+
+Procedure created.
+
+SQL> EXEC display_all_employees;
+----------------------------------------------------------
+EMP_ID | NAME       | JOB TITLE       | HIRE DATE | SALARY
+----------------------------------------------------------
+1 | RAMESH     | Director        | 10-JUN-15 | 90000
+2 | SURESH     | SUPERVISOR      | 15-MAR-18 | 75000
+5 | ARUN       | SORTING STAFF   | 05-NOV-21 | 35000
+10 | ARUN       | Senior Manager  | 25-FEB-26 | 70000
+11 | RAM        | POSTMASTER      | 10-JUN-15 | 50000
+12 | KAVI       | Senior Clerk    | 25-FEB-26 | 42000
+14 | SARUN      | Clerk           | 25-FEB-26 | 32000
+15 | VARUN      | Clerk           | 25-FEB-26 | 28000
+16 | MARUN      | Clerk           | 25-FEB-26 | 29000
+20 | RAVI       | Clerk           | 18-MAR-26 | 31000
+22 | SIVA       | Sorting Staff   | 18-MAR-26 | 33000
+101 | NEHA       | N/A             |  | 25000
+201 | PRIYA      | CLERK           |  | N/A
+202 | DIVYA      | ANALYST         |  | N/A
+301 | TEST EMP   | N/A             |  | N/A
+999 | Temp       | N/A             |  | 27000
+1001 | JOHN DOE   | MANAGER         |  | N/A
+----------------------------------------------------------
+
+PL/SQL procedure successfully completed.
+
+SELF 1 )B :    Write a PL/SQL function to display the job titles of all employees. Return a heading of job title.
+SQL> CREATE OR REPLACE FUNCTION get_all_job_titles
+  2      RETURN SYS_REFCURSOR
+  3  IS
+  4      v_cursor SYS_REFCURSOR;
+  5  BEGIN
+  6      OPEN v_cursor FOR
+  7          SELECT DESIGNATION AS "JOB TITLE"
+  8          FROM Employee
+  9          WHERE DESIGNATION IS NOT NULL
+ 10          ORDER BY DESIGNATION;
+ 11      RETURN v_cursor;
+ 12  END get_all_job_titles;
+ 13  /
+
+Function created.
+
+SQL> DECLARE
+  2      v_cursor  SYS_REFCURSOR;
+  3      v_jobtitle Employee.DESIGNATION%TYPE;
+  4  BEGIN
+  5      v_cursor := get_all_job_titles;
+  6      DBMS_OUTPUT.PUT_LINE('JOB TITLE');
+  7      DBMS_OUTPUT.PUT_LINE('-------------------------');
+  8      LOOP
+  9          FETCH v_cursor INTO v_jobtitle;
+ 10          EXIT WHEN v_cursor%NOTFOUND;
+ 11          DBMS_OUTPUT.PUT_LINE(v_jobtitle);
+ 12      END LOOP;
+ 13      CLOSE v_cursor;
+ 14  END;
+ 15  /
+JOB TITLE
+-------------------------
+ANALYST
+CLERK
+Clerk
+Clerk
+Clerk
+Clerk
+Director
+MANAGER
+POSTMASTER
+SORTING STAFF
+SUPERVISOR
+Senior Clerk
+Senior Manager
+Sorting Staff
+
+PL/SQL procedure successfully completed.
+
+
+SELF II ,A:    Write a PL/SQL procedure to display the employees who have the highest salary in each department using a nested while loop.
+SQL> CREATE OR REPLACE PROCEDURE highest_salary_per_dept
+  2  IS
+  3      -- Outer loop: distinct office codes
+  4      CURSOR dept_cur IS
+  5          SELECT DISTINCT OFFICE_CODE
+  6          FROM Employee
+  7          WHERE OFFICE_CODE IS NOT NULL
+  8          ORDER BY OFFICE_CODE;
+  9
+ 10      -- Inner loop: employees in a given office
+ 11      CURSOR emp_cur(p_office NUMBER) IS
+ 12          SELECT EMPLOYEE_ID, EMPLOYEE_NAME, DESIGNATION, SALARY
+ 13          FROM Employee
+ 14          WHERE OFFICE_CODE = p_office
+ 15          AND   SALARY IS NOT NULL
+ 16          ORDER BY SALARY DESC;
+ 17
+ 18      v_office  Employee.OFFICE_CODE%TYPE;
+ 19      v_id      Employee.EMPLOYEE_ID%TYPE;
+ 20      v_name    Employee.EMPLOYEE_NAME%TYPE;
+ 21      v_desig   Employee.DESIGNATION%TYPE;
+ 22      v_sal     Employee.SALARY%TYPE;
+ 23      v_max_sal Employee.SALARY%TYPE;
+ 24      v_max_id  Employee.EMPLOYEE_ID%TYPE;
+ 25      v_max_name Employee.EMPLOYEE_NAME%TYPE;
+ 26      v_max_desig Employee.DESIGNATION%TYPE;
+ 27  BEGIN
+ 28      OPEN dept_cur;
+ 29      LOOP
+ 30          FETCH dept_cur INTO v_office;
+ 31          EXIT WHEN dept_cur%NOTFOUND;
+ 32
+ 33          -- Reset max values for each department
+ 34          v_max_sal  := NULL;
+ 35          v_max_id   := NULL;**-
+ 36          v_max_name := NULL;
+ 37          v_max_desig:= NULL;
+ 38
+ 39          -- Inner loop over employees in this department
+ 40          OPEN emp_cur(v_office);
+ 41          LOOP
+ 42              FETCH emp_cur INTO v_id, v_name, v_desig, v_sal;
+ 43              EXIT WHEN emp_cur%NOTFOUND;
+ 44
+ 45              -- Find highest salary using WHILE-style comparison
+ 46              IF v_max_sal IS NULL OR v_sal > v_max_sal THEN
+ 47                  v_max_sal   := v_sal;
+ 48                  v_max_id    := v_id;
+ 49                  v_max_name  := v_name;
+ 50                  v_max_desig := v_desig;
+ 51              END IF;
+ 52          END LOOP;
+ 53          CLOSE emp_cur;
+ 54
+ 55          -- Print result for this department
+ 56          IF v_max_id IS NOT NULL THEN
+ 57              DBMS_OUTPUT.PUT_LINE('Dept(Office): ' || v_office);
+ 58              DBMS_OUTPUT.PUT_LINE('  Emp ID    : ' || v_max_id);
+ 59              DBMS_OUTPUT.PUT_LINE('  Name      : ' || v_max_name);
+ 60              DBMS_OUTPUT.PUT_LINE('  Job Title : ' || NVL(v_max_desig,'N/A'));
+ 61              DBMS_OUTPUT.PUT_LINE('  Max Salary: ' || v_max_sal);
+ 62              DBMS_OUTPUT.PUT_LINE('-----------------------------');
+ 63          END IF;
+ 64      END LOOP;
+ 65      CLOSE dept_cur;
+ 66  END highest_salary_per_dept;
+ 67  /
+
+Procedure created.
+
+SQL> EXEC highest_salary_per_dept;
+Dept(Office): 1
+Emp ID    : 999
+Name      : Temp
+Job Title : N/A
+Max Salary: 27000
+-----------------------------
+Dept(Office): 101
+Emp ID    : 1
+Name      : RAMESH
+Job Title : Director
+Max Salary: 90000
+-----------------------------
+Dept(Office): 102
+Emp ID    : 11
+Name      : RAM
+Job Title : POSTMASTER
+Max Salary: 50000
+-----------------------------
+
+PL/SQL procedure successfully completed.
+
+SELF II, B :    Write a PL/SQL function to display the average salary for each job. Return job title and average salary in a row.
+
+SQL> CREATE OR REPLACE FUNCTION get_avg_salary_per_job
+  2      RETURN SYS_REFCURSOR
+  3  IS
+  4      v_cursor SYS_REFCURSOR;
+  5  BEGIN
+  6      OPEN v_cursor FOR
+  7          SELECT DESIGNATION        AS "JOB TITLE",
+  8                 ROUND(AVG(SALARY), 2) AS "AVERAGE SALARY"
+  9          FROM Employee
+ 10          WHERE DESIGNATION IS NOT NULL
+ 11          AND   SALARY IS NOT NULL
+ 12          GROUP BY DESIGNATION
+ 13          ORDER BY DESIGNATION;
+ 14      RETURN v_cursor;
+ 15  END get_avg_salary_per_job;
+ 16  /
+
+Function created.
+
+SQL> DECLARE
+  2      v_cursor  SYS_REFCURSOR;
+  3      v_jobtitle Employee.DESIGNATION%TYPE;
+  4      v_avgsal   NUMBER;
+  5  BEGIN
+  6      v_cursor := get_avg_salary_per_job;
+  7      DBMS_OUTPUT.PUT_LINE('JOB TITLE            | AVERAGE SALARY');
+  8      DBMS_OUTPUT.PUT_LINE('------------------------------------');
+  9      LOOP
+ 10          FETCH v_cursor INTO v_jobtitle, v_avgsal;
+ 11          EXIT WHEN v_cursor%NOTFOUND;
+ 12          DBMS_OUTPUT.PUT_LINE(RPAD(v_jobtitle, 20) || ' | ' || v_avgsal);
+ 13      END LOOP;
+ 14      CLOSE v_cursor;
+ 15  END;
+ 16  /
+JOB TITLE            | AVERAGE SALARY
+------------------------------------
+Clerk                | 30000
+Director             | 90000
+POSTMASTER           | 50000
+SORTING STAFF        | 35000
+SUPERVISOR           | 75000
+Senior Clerk         | 42000
+Senior Manager       | 70000
+Sorting Staff        | 33000
+
+PL/SQL procedure successfully completed.
+
+
+SELF III  A:   Write a PL/SQL procedure to return the department name with the maximum number of employees.
+SQL> CREATE OR REPLACE PROCEDURE get_max_emp_department
+  2  IS
+  3      v_office     Employee.OFFICE_CODE%TYPE;
+  4      v_emp_count  NUMBER;
+  5  BEGIN
+  6      SELECT OFFICE_CODE, COUNT(*)
+  7      INTO   v_office, v_emp_count
+  8      FROM   Employee
+  9      WHERE  OFFICE_CODE IS NOT NULL
+ 10      GROUP BY OFFICE_CODE
+ 11      ORDER BY COUNT(*) DESC
+ 12      FETCH FIRST 1 ROW ONLY;
+ 13
+ 14      DBMS_OUTPUT.PUT_LINE('Department (Office Code) with Most Employees');
+ 15      DBMS_OUTPUT.PUT_LINE('--------------------------------------------');
+ 16      DBMS_OUTPUT.PUT_LINE('Office Code   : ' || v_office);
+ 17      DBMS_OUTPUT.PUT_LINE('Employee Count: ' || v_emp_count);
+ 18  END get_max_emp_department;
+ 19  /
+
+Procedure created.
+
+SQL> EXEC get_max_emp_department;
+Department (Office Code) with Most Employees
+--------------------------------------------
+Office Code   : 101
+Employee Count: 15
+
+PL/SQL procedure successfully completed.
+
+
+
+SELF III ,B   Write a PL/SQL function to return the employee details whose salary is less than average salary of where ‘arun’ is working.
+SQL> CREATE OR REPLACE FUNCTION get_emps_below_arun_dept_avg
+  2      RETURN SYS_REFCURSOR
+  3  IS
+  4      v_cursor     SYS_REFCURSOR;
+  5      v_avg_salary NUMBER;
+  6      v_office     Employee.OFFICE_CODE%TYPE;
+  7  BEGIN
+  8      -- Step 1: Find the OFFICE_CODE where ARUN works
+  9      --         (using ROWNUM=1 in case of two ARUNs, both are in 101)
+ 10      SELECT OFFICE_CODE INTO v_office
+ 11      FROM Employee
+ 12      WHERE UPPER(EMPLOYEE_NAME) = 'ARUN'
+ 13      AND ROWNUM = 1;
+ 14
+ 15      -- Step 2: Compute average salary of that office
+ 16      SELECT AVG(SALARY) INTO v_avg_salary
+ 17      FROM Employee
+ 18      WHERE OFFICE_CODE = v_office
+ 19      AND   SALARY IS NOT NULL;
+ 20
+ 21      -- Step 3: Return all employees in DB whose salary < that avg
+ 22      OPEN v_cursor FOR
+ 23          SELECT EMPLOYEE_ID,
+ 24                 EMPLOYEE_NAME,
+ 25                 DESIGNATION    AS "JOB TITLE",
+ 26                 OFFICE_CODE,
+ 27                 SALARY
+ 28          FROM Employee
+ 29          WHERE SALARY < v_avg_salary
+ 30          AND   SALARY IS NOT NULL
+ 31          ORDER BY SALARY DESC;
+ 32
+ 33      RETURN v_cursor;
+ 34  END get_emps_below_arun_dept_avg;
+ 35  /
+
+Function created.
+
+SQL> DECLARE
+  2      v_cursor  SYS_REFCURSOR;
+  3      v_id      Employee.EMPLOYEE_ID%TYPE;
+  4      v_name    Employee.EMPLOYEE_NAME%TYPE;
+  5      v_desig   Employee.DESIGNATION%TYPE;
+  6      v_office  Employee.OFFICE_CODE%TYPE;
+  7      v_sal     Employee.SALARY%TYPE;
+  8  BEGIN
+  9      v_cursor := get_emps_below_arun_dept_avg;
+ 10
+ 11      DBMS_OUTPUT.PUT_LINE('Employees with Salary < Avg Salary of ARUN''s Department');
+ 12      DBMS_OUTPUT.PUT_LINE('----------------------------------------------------------');
+ 13      DBMS_OUTPUT.PUT_LINE('ID  | NAME    | JOB TITLE      | OFFICE | SALARY');
+ 14      DBMS_OUTPUT.PUT_LINE('----------------------------------------------------------');
+ 15
+ 16      LOOP
+ 17          FETCH v_cursor INTO v_id, v_name, v_desig, v_office, v_sal;
+ 18          EXIT WHEN v_cursor%NOTFOUND;
+ 19          DBMS_OUTPUT.PUT_LINE(
+ 20              RPAD(v_id,   4)  || ' | ' ||
+ 21              RPAD(v_name, 8)  || ' | ' ||
+ 22              RPAD(NVL(v_desig,'N/A'), 14) || ' | ' ||
+ 23              RPAD(v_office,6) || ' | ' ||
+ 24              v_sal
+ 25          );
+ 26      END LOOP;
+ 27
+ 28      CLOSE v_cursor;
+ 29  END;
+ 30  /
+Employees with Salary < Avg Salary of ARUN's Department
+----------------------------------------------------------
+ID  | NAME    | JOB TITLE      | OFFICE | SALARY
+----------------------------------------------------------
+12   | KAVI     | Senior Clerk   | 101    | 42000
+5    | ARUN     | SORTING STAFF  | 101    | 35000
+22   | SIVA     | Sorting Staff  | 101    | 33000
+14   | SARUN    | Clerk          | 101    | 32000
+20   | RAVI     | Clerk          | 101    | 31000
+16   | MARUN    | Clerk          | 101    | 29000
+15   | VARUN    | Clerk          | 101    | 28000
+999  | Temp     | N/A            | 1      | 27000
+101  | NEHA     | N/A            | 101    | 25000
+
+PL/SQL procedure successfully completed.

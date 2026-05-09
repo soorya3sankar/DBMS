@@ -1,0 +1,621 @@
+
+	SINGLE ROW SUB QUERY 
+
+Q1. Find the employee with the maximum experience.
+
+SQL> SELECT MAX(EXPERIENCE)
+  2  FROM EMPLOYEE;
+
+MAX(EXPERIENCE)
+---------------
+          15.55
+
+SQL> SELECT EMPLOYEE_ID, EMPLOYEE_NAME, EXPERIENCE
+  2  FROM EMPLOYEE
+  3  WHERE EXPERIENCE = (SELECT MAX(EXPERIENCE) FROM EMPLOYEE);
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE
+----------- ------------------------- ----------
+          2 SURESH                         15.55
+
+
+
+Q2. Find all employees whose experience is greater than the average experience of all employees.
+
+SQL> SELECT AVG(EXPERIENCE)
+  2  FROM EMPLOYEE;
+
+AVG(EXPERIENCE)
+---------------+
+     5.79983333
+
+SQL> SELECT EMPLOYEE_ID, EMPLOYEE_NAME, EXPERIENCE
+  2  FROM EMPLOYEE
+  3  WHERE EXPERIENCE > (SELECT AVG(EXPERIENCE) FROM EMPLOYEE);
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE
+----------- ------------------------- ----------
+         11 RAM                           10.662
+          2 SURESH                         15.55
+
+
+
+Q3. Find all employees whose experience is lesser than the average experience of all employees.
+
+SQL> SELECT AVG(EXPERIENCE)
+  2  FROM EMPLOYEE;
+
+AVG(EXPERIENCE)
+---------------
+     5.79983333
+
+SQL> SELECT EMPLOYEE_ID, EMPLOYEE_NAME, EXPERIENCE
+      FROM EMPLOYEE
+     WHERE EXPERIENCE < (SELECT AVG(EXPERIENCE) FROM EMPLOYEE);
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE
+----------- ------------------------- ----------
+         10 ARUN                               5
+         12 KAVI                               4
+         13 PAVI                               2
+          3 KUMAR                            5.5
+          5 ARUN                           4.258
+         15 VARUN                              1
+         16 MARUN                              2
+
+7 rows selected.
+
+
+		MULTI ROW 
+Q4. Find all employees who work in the same office as any employee with the designation 'POSTMASTER'.
+
+SQL>
+SQL> SELECT OFFICE_CODE
+  2  FROM EMPLOYEE
+  3  WHERE DESIGNATION = 'POSTMASTER';
+
+OFFICE_CODE
+-----------
+        101
+        101
+
+SQL> SELECT EMPLOYEE_ID, EMPLOYEE_NAME, OFFICE_CODE
+  2  FROM EMPLOYEE
+  3  WHERE OFFICE_CODE IN (SELECT OFFICE_CODE
+  4                        FROM EMPLOYEE
+  5                        WHERE DESIGNATION = 'POSTMASTER');
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE
+----------- ------------------------- -----------
+         11 RAM                               101
+          1 RAMESH                            101
+          2 SURESH                            101
+          3 KUMAR                             101
+          4 KARTHIK                           101
+          5 ARUN                              101
+
+6 rows selected.
+
+
+Q5. Find all return records whose article not belongs to users of type 'REGISTERED'.
+
+
+SQL> SELECT RETURN_ID, ARTICLE_NO, RETURN_REASON
+  2  FROM RETURN
+  3  WHERE ARTICLE_NO NOT IN (SELECT ARTICLE_NO
+  4                       FROM USERARTICLE
+  5                       WHERE TYPE = 'REGISTERED');
+
+ RETURN_ID ARTICLE_NO RETURN_REASON
+---------- ---------- -------------------------
+         8        107 DAMAGED
+         5        105 ADDRESS ISSUE
+         4        104 DAMAGED
+         3        103 WRONG ITEM
+         6        101 DAMAGED
+         7        106 DAMAGED
+         2        102 DELAY
+
+7 rows selected.
+
+
+
+QN6. Find the mail bags whose article count is greater than at least one mail bag dispatched from source office 301.
+
+SQL> SELECT ARTICLE_COUNT
+  2  FROM MAILBAG
+  3  WHERE SOURCE_OFFICE = 301;
+
+ARTICLE_COUNT
+-------------
+           25
+           35
+           15
+           25
+
+SQL> SELECT BAG_NUMBER, ARTICLE_COUNT, SOURCE_OFFICE
+  2  FROM MAILBAG
+  3  WHERE ARTICLE_COUNT > ANY
+  4  (
+  5      SELECT ARTICLE_COUNT
+  6      FROM MAILBAG
+  7      WHERE SOURCE_OFFICE = 301
+  8  );
+
+BAG_NUMBER ARTICLE_COUNT SOURCE_OFFICE
+---------- ------------- -------------
+      2001            25           301
+      2002            35           301
+      2003            45           302
+      2004            55           303
+      3001            20           310
+      3002            30           311
+      3003            40           312
+      3004            50           313
+      4001            45           320
+      4002            50           321
+      5002            25           301
+
+BAG_NUMBER ARTICLE_COUNT SOURCE_OFFICE
+---------- ------------- -------------
+      5003            35           302
+      5004            45           303
+      5005            55           304
+      5006            65           305
+
+15 rows selected.
+
+
+QN7. Find the mail bags whose capacity is greater than every mail bag going to destination office 401.
+
+SQL> SELECT CAPACITY
+  2  FROM MAILBAG
+  3  WHERE DESTINATION_OFFICE = 401;
+
+  CAPACITY
+----------
+        50
+        40
+        60
+        40
+        60
+        90
+
+6 rows selected.
+
+SQL> SELECT BAG_NUMBER, CAPACITY, DESTINATION_OFFICE
+  2  FROM MAILBAG
+  3  WHERE CAPACITY > ALL
+  4  (
+  5      SELECT CAPACITY
+  6      FROM MAILBAG
+  7      WHERE DESTINATION_OFFICE = 401
+  8  );
+
+BAG_NUMBER   CAPACITY DESTINATION_OFFICE
+---------- ---------- ------------------
+      3004        100                403
+
+
+
+
+QN8. Find the mail bags whose article count is less than at least one mail bag dispatched from source office 301.
+
+SQL> SELECT ARTICLE_COUNT
+  2  FROM MAILBAG
+  3  WHERE SOURCE_OFFICE = 301;
+
+ARTICLE_COUNT
+-------------
+           25
+           35
+           15
+           25
+
+SQL> SELECT BAG_NUMBER, ARTICLE_COUNT
+  2  FROM MAILBAG
+  3  WHERE ARTICLE_COUNT < ANY
+  4  (
+  5      SELECT ARTICLE_COUNT
+  6      FROM MAILBAG
+  7      WHERE SOURCE_OFFICE = 301
+  8  );
+
+BAG_NUMBER ARTICLE_COUNT
+---------- -------------
+      2001            25
+      3001            20
+      3002            30
+      5001            15
+      5002            25
+
+
+QN9. Find the mail bags whose article count is less than every mail bag dispatched from source office 301.
+
+SQL> SELECT ARTICLE_COUNT
+  2  FROM MAILBAG
+  3  WHERE SOURCE_OFFICE = 301;
+
+ARTICLE_COUNT
+-------------
+           25
+           35
+           15
+           25
+
+SQL> SELECT BAG_NUMBER, ARTICLE_COUNT
+  2  FROM MAILBAG
+  3  WHERE ARTICLE_COUNT < ALL
+  4  (
+  5      SELECT ARTICLE_COUNT
+  6      FROM MAILBAG
+  7      WHERE SOURCE_OFFICE = 301
+  8  );
+
+BAG_NUMBER ARTICLE_COUNT
+---------- -------------
+      7001            10
+
+
+
+QN10. Find the mail bags whose article count is equal to any article count of mail bags dispatched from source office 301.
+
+SQL> SELECT ARTICLE_COUNT
+  2  FROM MAILBAG
+  3  WHERE SOURCE_OFFICE = 301;
+
+ARTICLE_COUNT
+-------------
+           25
+           35
+           15
+           25
+
+SQL> SELECT BAG_NUMBER, ARTICLE_COUNT
+  2  FROM MAILBAG
+  3  WHERE ARTICLE_COUNT = ANY
+  4  (
+  5      SELECT ARTICLE_COUNT
+  6      FROM MAILBAG
+  7      WHERE SOURCE_OFFICE = 301
+  8  );
+
+BAG_NUMBER ARTICLE_COUNT
+---------- -------------
+      2001            25
+      5002            25
+      2002            35
+      5003            35
+      5001            15
+
+
+
+QN11. Find the mail bags whose capacity is equal to every mail bag going to destination office 500.
+
+SQL> SELECT CAPACITY
+  2  FROM MAILBAG
+  3  WHERE DESTINATION_OFFICE = 500;
+
+  CAPACITY
+----------
+        90
+        90
+
+SQL> SELECT BAG_NUMBER, CAPACITY
+  2  FROM MAILBAG
+  3  WHERE CAPACITY = ALL
+  4  (
+  5      SELECT CAPACITY
+  6      FROM MAILBAG
+  7      WHERE DESTINATION_OFFICE = 500
+  8  );
+
+BAG_NUMBER   CAPACITY
+---------- ----------
+      4001         90
+      4002         90
+      5006         90
+
+
+
+
+
+		CO RELATED SUB QUERY
+
+Q12. Find employees whose experience is greater than the average experience of all employees in their own office.
+
+
+SQL> SELECT E1.EMPLOYEE_ID, E1.EMPLOYEE_NAME, E1.OFFICE_CODE, E1.EXPERIENCE
+  2  FROM EMPLOYEE E1
+  3  WHERE E1.EXPERIENCE > (SELECT AVG(E2.EXPERIENCE)
+  4                          FROM EMPLOYEE E2
+  5                          WHERE E2.OFFICE_CODE = E1.OFFICE_CODE);
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE EXPERIENCE
+----------- ------------------------- ----------- ----------
+         11 RAM                               101     10.662
+          2 SURESH                            101      15.55
+
+
+
+
+
+IN FROM CLAUSE 
+
+QN13. List the total number of employees in each office.
+
+SQL> SELECT OFFICE_CODE
+  2  FROM EMPLOYEE;
+
+OFFICE_CODE
+-----------
+        101
+        101
+        101
+        101
+        101
+        101
+        101
+        101
+        101
+        101
+        101
+
+OFFICE_CODE
+-----------
+        101
+
+12 rows selected.
+SQL> SELECT OFFICE_CODE, COUNT(*) AS NUM_EMPLOYEES
+  2  FROM (SELECT OFFICE_CODE FROM EMPLOYEE) EMP_OFFICES
+  3  GROUP BY OFFICE_CODE;
+
+OFFICE_CODE NUM_EMPLOYEES
+----------- -------------
+        101             6
+
+
+
+IN SELECT CLAUSE 
+
+QN14. For each employee, display their experience and the average experience of all employees in their same office.
+
+
+SQL> SELECT E1.EMPLOYEE_ID,
+  2         E1.EMPLOYEE_NAME,
+  3         E1.OFFICE_CODE,
+  4         E1.EXPERIENCE,
+  5         (SELECT ROUND(AVG(E2.EXPERIENCE), 2)
+  6          FROM EMPLOYEE E2
+  7          WHERE E2.OFFICE_CODE = E1.OFFICE_CODE) AS AVG_OFFICE_EXP
+  8  FROM EMPLOYEE E1;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE EXPERIENCE AVG_OFFICE_EXP
+----------- ------------------------- ----------- ---------- --------------
+         11 RAM                               101     10.662           8.27
+          1 RAMESH                            101       7.55           8.27
+          2 SURESH                            101      15.55           8.27
+          3 KUMAR                             101        5.5           8.27
+          4 KARTHIK                           101      6.078           8.27
+          5 ARUN                              101      4.258           8.27
+
+6 rows selected.
+
+
+
+
+IN HAVING CLAUSE
+
+QN15. Find designations where the maximum experience exceeds the overall maximum experience divided by 2.
+
+SQL> SELECT MAX(EXPERIENCE) / 2
+  2  FROM EMPLOYEE;
+
+MAX(EXPERIENCE)/2
+-----------------
+            7.775
+
+SQL> SELECT DESIGNATION, MAX(EXPERIENCE) AS MAX_EXP
+  2  FROM EMPLOYEE
+  3  GROUP BY DESIGNATION
+  4  HAVING MAX(EXPERIENCE) > (SELECT MAX(EXPERIENCE) / 2 FROM EMPLOYEE);
+
+DESIGNATION                  MAX_EXP
+------------------------- ----------
+POSTMASTER                    10.662
+SUPERVISOR                     15.55
+
+
+
+EXISTS
+
+QN16. Find employees who work in the same office as at least one other employee with a different designation.
+
+
+SQL> SELECT E1.EMPLOYEE_ID, E1.EMPLOYEE_NAME, E1.DESIGNATION, E1.OFFICE_CODE
+  2  FROM EMPLOYEE E1
+  3  WHERE EXISTS (SELECT 1
+  4                FROM EMPLOYEE E2
+  5                WHERE E2.OFFICE_CODE  = E1.OFFICE_CODE
+  6                AND   E2.DESIGNATION <> E1.DESIGNATION);
+
+EMPLOYEE_ID EMPLOYEE_NAME             DESIGNATION               OFFICE_CODE
+----------- ------------------------- ------------------------- -----------
+          2 SURESH                    SUPERVISOR                        101
+          3 KUMAR                     CLERK                             101
+          4 KARTHIK                   DELIVERY STAFF                    101
+          5 ARUN                      SORTING STAFF                     101
+         11 RAM                       POSTMASTER                        101
+          1 RAMESH                    POSTMASTER                        101
+
+6 rows selected.
+
+
+NOT EXISTS
+
+QN17. Find employees who have NOT been assigned to any travel record.
+
+SQL> SELECT E.EMPLOYEE_ID, E.EMPLOYEE_NAME
+  2  FROM EMPLOYEE E
+  3  WHERE NOT EXISTS (SELECT 1
+  4                    FROM TRAVELRECORD T
+  5                    WHERE T.EMPLOYEE_ID = E.EMPLOYEE_ID);
+
+EMPLOYEE_ID EMPLOYEE_NAME
+----------- -------------------------
+          1 RAMESH
+         11 RAM
+          2 SURESH
+          4 KARTHIK
+          5 ARUN
+          3 KUMAR
+
+6 rows selected.
+
+
+
+SINGLE WITH CLAUSE
+
+QN18. Find all employees whose experience is above the overall average — using a CTE
+
+SQL> SELECT AVG(EXPERIENCE) AS avg_exp
+  2  FROM EMPLOYEE;
+
+   AVG_EXP
+----------
+5.79983333
+
+SQL> WITH AvgExp AS (
+  2    SELECT AVG(EXPERIENCE) AS avg_exp
+  3    FROM EMPLOYEE
+  4  )
+  5  SELECT EMPLOYEE_ID, EMPLOYEE_NAME, EXPERIENCE
+  6  FROM EMPLOYEE
+  7  WHERE EXPERIENCE > (SELECT avg_exp FROM AvgExp);
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE
+----------- ------------------------- ----------
+         11 RAM                           10.662
+          2 SURESH                         15.55
+
+
+
+MULTIPLE WITH CLAUSE
+
+QN19. Find employees whose experience is above average AND who work in an office that has more than 2 employees.
+
+SQL> SELECT AVG(EXPERIENCE) AS avg_exp
+  2  FROM EMPLOYEE;
+
+   AVG_EXP
+----------
+5.79983333
+
+SQL> SELECT OFFICE_CODE, COUNT(*) AS emp_count
+  2  FROM EMPLOYEE
+  3  GROUP BY OFFICE_CODE;
+
+OFFICE_CODE  EMP_COUNT
+----------- ----------
+        101         12
+
+SQL> WITH AvgExp AS (
+  2    SELECT AVG(EXPERIENCE) AS avg_exp
+  3    FROM EMPLOYEE
+  4  ),
+  5  OfficeCount AS (
+  6    SELECT OFFICE_CODE, COUNT(*) AS emp_count
+  7    FROM EMPLOYEE
+  8    GROUP BY OFFICE_CODE
+  9  )
+ 10  SELECT E.EMPLOYEE_ID, E.EMPLOYEE_NAME, E.OFFICE_CODE, E.EXPERIENCE, OC.emp_count
+ 11  FROM EMPLOYEE E
+ 12  JOIN OfficeCount OC ON E.OFFICE_CODE = OC.OFFICE_CODE
+ 13  WHERE E.EXPERIENCE > (SELECT avg_exp FROM AvgExp)
+ 14  AND   OC.emp_count > 2;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE EXPERIENCE  EMP_COUNT
+----------- ------------------------- ----------- ---------- ----------
+         11 RAM                               101     10.662          6
+          2 SURESH                            101      15.55          6
+
+
+
+
+
+
+SCALAR SUB QUERY IN SELECT 
+
+QN20. For each employee in office 101, display their name and their manager's name using a scalar subquery.
+
+
+SQL> SELECT EMPLOYEE_NAME,
+  2         (SELECT E2.EMPLOYEE_NAME
+  3          FROM EMPLOYEE E2
+  4          WHERE E2.EMPLOYEE_ID = E1.MANAGER_ID) AS MANAGER_NAME
+  5  FROM EMPLOYEE E1
+  6  WHERE E1.OFFICE_CODE = 101;
+
+EMPLOYEE_NAME             MANAGER_NAME
+------------------------- -------------------------
+RAM
+RAMESH
+SURESH                    RAMESH
+KUMAR                     RAMESH
+KARTHIK                   RAMESH
+ARUN                      RAMESH
+
+6 rows selected.
+
+
+SCALAR SUB QUERY IN WHERE
+
+QN21. Find all employees whose experience equals the maximum experience among employees with designation 'POSTMASTER'.
+
+SQL> SELECT MAX(EXPERIENCE)
+  2  FROM EMPLOYEE
+  3  WHERE DESIGNATION = 'POSTMASTER';
+
+MAX(EXPERIENCE)
+---------------
+         10.662
+SQL> SELECT EMPLOYEE_ID, EMPLOYEE_NAME, EXPERIENCE, DESIGNATION
+  2  FROM EMPLOYEE
+  3  WHERE EXPERIENCE = (SELECT MAX(EXPERIENCE)
+  4                      FROM EMPLOYEE
+  5                      WHERE DESIGNATION = 'POSTMASTER');
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE DESIGNATION
+----------- ------------------------- ---------- -------------------------
+         11 RAM                           10.662 POSTMASTER
+
+
+
+
+
+
+SCALAR SUB QUERY IN HAVING
+
+QN22. Find designations where the average experience is above the overall average — using scalar subquery in HAVING.
+
+SQL> SELECT MAX(EXPERIENCE)
+  2  FROM EMPLOYEE
+  3  WHERE DESIGNATION = 'POSTMASTER';
+
+MAX(EXPERIENCE)
+---------------
+         10.662
+
+SQL> SELECT DESIGNATION, AVG(EXPERIENCE) AS AVG_EXP
+  2  FROM EMPLOYEE
+  3  GROUP BY DESIGNATION
+  4  HAVING AVG(EXPERIENCE) > (SELECT AVG(EXPERIENCE) FROM EMPLOYEE);
+
+DESIGNATION                  AVG_EXP
+------------------------- ----------
+POSTMASTER                     9.106
+SUPERVISOR                     15.55
+
+
+
+

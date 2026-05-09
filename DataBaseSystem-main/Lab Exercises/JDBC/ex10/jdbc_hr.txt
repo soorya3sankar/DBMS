@@ -1,0 +1,17 @@
+SELF I
+
+A)	Develop a Customer Registration Form that collects customer details such as name, email, phone number, and password, and stores the information in the database
+
+E)	Create a Product Display Page that retrieves product information from the database and shows it to customers.
+
+SELF II
+
+A)	Develop an Order Placement Form where customers can select products and place an order. 
+
+B)	Create a Shopping Cart Form where customers can add multiple products before placing an order.
+
+SELF III
+
+C)	Develop an Admin Dashboard where administrators can add, update, or delete products
+
+E)	Implement Database Validation Rules in the application to prevent duplicate customer accounts with the same email address.

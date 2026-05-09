@@ -1,0 +1,1843 @@
+--- INSERT ONE ROW INTO THE TABLE EMPLOYEE
+ 
+1. 1. Insert a single row into the Employee table
+
+SQL> INSERT INTO Employee VALUES (1,'RAMESH',101,NULL,'PERMANENT','10-06-2015',9,'POSTMASTER',9);
+
+1 row created.
+
+
+---INSERT MULTIPLE ROW INTO THE TABLE EMPLOYEE 
+
+2. Insert multiple rows into the Employee table using INSERT ALL
+
+SQL> INSERT ALL INTO Employee VALUES (2,'SURESH',101,1,'PERMANENT','15-03-2018',6,'SUPERVISOR',8) INTO Employee VALUES (3,'MAHESH',101,1,'CONTRACT','21-08-2019',4,'CLERK',10) INTO Employee VALUES (4,'KARTHIK',101,1,'PERMANENT','10-01-2020',3,'DELIVERY STAFF',6) INTO Employee VALUES (5,'ARUN',101,1,'CONTRACT','05-11-2021',2,'SORTING STAFF',14) SELECT * FROM dual;
+
+4 rows created.
+
+SQL> select * from employee;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+          1 RAMESH                            101
+PERMANENT                 10-06-2015          9 POSTMASTER
+9
+
+          2 SURESH                            101          1
+PERMANENT                 15-03-2018          6 SUPERVISOR
+8
+
+
+
+--CHECKING CONDITION WHILE INSERTING , PRIMRY KEY CONSTRAINT ,CHECK COSTRAINT 
+
+3. Attempt to insert a duplicate employee ID to check primary key constraint
+
+SQL> INSERT INTO Employee VALUES (1,'RAJU',101,1,'PERMANENT','12-12-2020',5,'CLERK',10);
+INSERT INTO Employee VALUES (1,'RAJU',101,1,'PERMANENT','12-12-2020',5,'CLERK',10)
+*
+ERROR at line 1:
+ORA-00001: unique constraint (SYSTEM.SYS_C008318) violated
+
+
+4. Insert a valid new row into the Employee table
+
+SQL> INSERT INTO Employee VALUES (10,'SANJAY',101,1,'PERMANENT','12-07-2020',5,'CLERK',9);
+
+1 row created.
+
+
+5. Add a check constraint on the capacity column in the MailBag table
+
+SQL> alter table mailbag add constraint m1 check(capacity>=0 and capacity<=100);
+
+Table altered.
+
+
+6. Attempt to insert a mailbag record that violates the check constraint
+
+SQL> INSERT INTO MailBag VALUES (1001,1,150,30,101,102,SYSTIMESTAMP,501);
+INSERT INTO MailBag VALUES (1001,1,150,30,101,102,SYSTIMESTAMP,501)
+*
+ERROR at line 1:
+ORA-02290: check constraint (SYSTEM.M1) violated
+
+
+7. Insert a valid row into the MailBag table
+
+SQL> INSERT INTO MailBag VALUES (2001,10,80,45,101,102,SYSTIMESTAMP,601);
+
+1 row created.
+
+
+--INSERTING ROWS INTO THE TABLE FROM OTHER TABLE
+
+8. Create a new table Return_Copy using data from the Return table
+
+SQL> desc return
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ RETURN_ID                                          NUMBER(38)
+ ARTICLE_NO                                         NUMBER(38)
+ RETURN_REASON                                      VARCHAR2(25)
+ RETURN_DATE                                        DATE
+ RETURN_LOCATION                                    VARCHAR2(25)
+ REMARKS                                            VARCHAR2(25)
+
+
+9. Insert all records from the Return table into Return_Copy table
+
+SQL> CREATE TABLE Return_Copy AS SELECT * FROM Return;
+
+Table created.
+
+
+10. Insert multiple rows into the Return table using INSERT ALL
+
+SQL> INSERT INTO Return_Copy SELECT * FROM Return;
+
+5 rows created.
+
+SQL> select * from return_copy;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         1        101 DAMAGED                   10-06-2023
+SIVAKASI                  UPDATED
+
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+
+
+
+SQL> INSERT ALL INTO Return (return_id,article_no,return_reason,return_date,return_location) VALUES (1,101,'DAMAGED','10-06-2023','SIVAKASI') INTO Return (return_id,article_no,return_reason,return_date,return_location) VALUES (2,102,'DELAY','12-06-2023','SIVAKASI') INTO Return (return_id,article_no,return_reason,return_date,return_location) VALUES (3,103,'WRONG ITEM','15-06-2023','CHENNAI') INTO Return (return_id,article_no,return_reason,return_date,return_location) VALUES (4,104,'DAMAGED','18-06-2023','ERODE') INTO Return (return_id,article_no,return_reason,return_date,return_location) VALUES (5,105,'ADDRESS ISSUE','20-06-2023','ERODE') SELECT * FROM dual;
+
+5 rows created.
+
+---DELETE A SINGLE ROW IN THE TABLE BASED ON ONE CONDITION  
+
+11. Delete return records where the return location is Chennai
+
+SQL> DELETE FROM Return WHERE return_location='CHENNAI';
+
+1 row deleted.
+
+
+---DELETE A SINGLE ROW IN THE TABLE BASED ON MULTIPLE CONDITION
+
+12. Delete return records where location is Erode and reason is Damaged
+
+SQL> DELETE FROM Return WHERE return_location='ERODE' AND return_reason='DAMAGED';
+
+1 row deleted.
+
+
+---DELETING ALL THE ROWS IN THE TABLE
+
+13. Delete all records from the Return table
+
+SQL> DELETE FROM Return;
+
+3 rows deleted.
+
+
+
+SQL> select * from return;
+
+no rows selected
+
+
+---ROLLBACK 
+
+14. Rollback the delete operation to restore deleted records
+
+SQL> rollback;
+
+Rollback complete.
+
+
+
+SQL> select * from return;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         1        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+         2        102 DELAY                     12-06-2023
+SIVAKASI
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         4        104 DAMAGED                   18-06-2023
+ERODE
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE
+
+
+15. Delete return records where the location ends with letter I
+
+SQL> DELETE FROM return WHERE return_location LIKE '%I';
+
+3 rows deleted.
+
+SQL> rollback;
+
+Rollback complete.
+
+
+16. Delete return records where the location starts with letter E
+
+SQL> DELETE FROM return WHERE return_location LIKE 'E%';
+
+2 rows deleted.
+
+
+SQL> rollback;
+
+Rollback complete.
+
+
+17. Delete return records where location ends with I and article number is greater than 101
+
+SQL> DELETE FROM return WHERE return_location LIKE '%I' and article_no>101;
+
+2 rows deleted.
+
+SQL> rollback;
+
+Rollback complete.
+
+
+
+---UPDATE A SINGLE ATTRIBUTE 
+
+
+18. Update remarks column for all return records as PROCESSED
+
+SQL> UPDATE Return SET remarks='PROCESSED';
+
+5 rows updated.
+
+SQL> select * from return;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         1        101 DAMAGED                   10-06-2023
+SIVAKASI                  PROCESSED
+
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  PROCESSED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         4        104 DAMAGED                   18-06-2023
+ERODE                     PROCESSED
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+
+---UPDATE BASED ON ONE CONDITION
+
+19. Update remarks as URGENT for returns from Sivakasi
+SQL> UPDATE Return SET remarks='URGENT' WHERE return_location='SIVAKASI';
+
+2 rows updated.
+
+SQL> select * from return;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         1        101 DAMAGED                   10-06-2023
+SIVAKASI                  URGENT
+
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  URGENT
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         4        104 DAMAGED                   18-06-2023
+ERODE                     PROCESSED
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+
+---UPDATE SINGLE COLMNS WITH MULTIPLE CONDITIONS
+
+20. Update remarks as RECHECK for returns from Erode with reason Damaged
+
+SQL> UPDATE Return SET remarks='RECHECK' WHERE return_location='ERODE' AND return_reason='DAMAGED';
+
+1 row updated.
+
+SQL> select * from return;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         1        101 DAMAGED                   10-06-2023
+SIVAKASI                  URGENT
+
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  URGENT
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+---GIVE VALUES FOR DERIVED ATTRIBUTE USING UPDATE
+
+
+SQL> select * from employee;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+          1 RAMESH                            101
+PERMANENT                 10-06-2015            POSTMASTER
+9
+
+          2 SURESH                            101          1
+PERMANENT                 15-03-2018            SUPERVISOR
+8
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+
+          3 MAHESH                            101          1
+CONTRACT                  21-08-2019            CLERK
+10
+
+          4 KARTHIK                           101          1
+PERMANENT                 10-01-2020            DELIVERY STAFF
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+6
+
+          5 ARUN                              101          1
+CONTRACT                  05-11-2021            SORTING STAFF
+14
+
+
+
+21. Update employee experience using date of joining and system date
+
+SQL> UPDATE Employee SET experience=MONTHS_BETWEEN(SYSDATE,date_of_join)/12;
+
+5 rows updated.
+
+SQL> select * from employee;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+          1 RAMESH                            101
+PERMANENT                 10-06-2015         10 POSTMASTER
+9
+
+          2 SURESH                            101          1
+PERMANENT                 15-03-2018          7 SUPERVISOR
+8
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+
+          3 MAHESH                            101          1
+CONTRACT                  21-08-2019          6 CLERK
+10
+
+          4 KARTHIK                           101          1
+PERMANENT                 10-01-2020          6 DELIVERY STAFF
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+6
+
+          5 ARUN                              101          1
+CONTRACT                  05-11-2021          4 SORTING STAFF
+14
+
+
+---MERGE THE TABLE
+
+22. create a copy of a return table to do the merger operation.
+
+SQL> CREATE TABLE Return_Copy AS SELECT * FROM Return;
+
+Table created.
+
+
+23. update remarks in Return_Copy table for Sivakasi location
+SQL> UPDATE Return_Copy SET remarks='UPDATED' WHERE return_location='SIVAKASI';
+
+2 rows updated.
+
+
+Merge data from Return_Copy table into Return table
+
+24. SQL> MERGE INTO Return r USING Return_Copy rc ON (r.return_id=rc.return_id) WHEN MATCHED THEN UPDATE SET r.remarks=rc.remarks WHEN NOT MATCHED THEN INSERT (return_id,article_no,return_reason,return_date,return_location,remarks) VALUES (rc.return_id,rc.article_no,rc.return_reason,rc.return_date,rc.return_location,rc.remarks);
+
+5 rows merged.
+
+SQL> select * from return;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         1        101 DAMAGED                   10-06-2023
+SIVAKASI                  UPDATED
+
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+---OTHER OPERTORS 
+
+
+25. Display return records where location is either Sivakasi or Erode
+
+SQL> SELECT * FROM Return WHERE return_location IN ('SIVAKASI','ERODE');
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+26. Display return records where location is not Sivakasi
+
+SQL> SELECT * FROM Return WHERE return_location NOT IN ('SIVAKASI');
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+27. Display return records where remarks value is null
+
+SQL> SELECT * FROM Return WHERE remarks IS NULL;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+28. Display return records where remarks value is not null
+
+SQL> SELECT * FROM Return WHERE remarks IS NOT NULL;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+29. Display return records where location starts with letter S
+
+SQL> SELECT * FROM Return WHERE return_location LIKE 'S%';
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+30. Display return records where location does not start with letter S
+
+SQL> SELECT * FROM Return WHERE return_location NOT LIKE 'S%';
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+31. Display return records where article number is between 101 and 103
+
+SQL> SELECT * FROM Return WHERE article_no BETWEEN 101 AND 103;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+32. Display return records where return date is between 10-06-2023 and 20-06-2023
+
+SQL> SELECT * FROM Return WHERE return_date BETWEEN '10-06-2023' AND '20-06-2023';
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+
+33. Display return records where article number is not between 101 and 103
+
+SQL> SELECT * FROM Return WHERE article_no NOT BETWEEN 101 AND 103;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+34.  Display return records where location is Sivakasi or Erode and return date is between 10-06-2023 and 20-06-2023
+
+SQL> SELECT * FROM Return WHERE return_location IN ('SIVAKASI','ERODE') AND return_date BETWEEN '10-06-2023' AND '20-06-2023';
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+--GROUP BY ,ORDER BY ,HAVING
+
+
+
+SQL> SELECT * FROM RETURN;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+
+35.Count number of returns for each return location 
+
+SQL> SELECT return_location,COUNT(*) FROM Return GROUP BY return_location;
+
+RETURN_LOCATION             COUNT(*)
+------------------------- ----------
+SIVAKASI                           2
+CHENNAI                            1
+ERODE                              2
+
+
+36. Count number of returns for each return reason
+
+SQL> SELECT return_reason,COUNT(*) FROM Return GROUP BY return_reason;
+
+RETURN_REASON               COUNT(*)
+------------------------- ----------
+DELAY                              1
+WRONG ITEM                         1
+DAMAGED                            2
+ADDRESS ISSUE                      1
+
+
+37. Find average experience of employees grouped by employee type
+
+SQL> SELECT employee_type,AVG(experience) FROM Employee GROUP BY employee_type;
+
+EMPLOYEE_TYPE             AVG(EXPERIENCE)
+------------------------- ---------------
+PERMANENT                           8.825
+CONTRACT                           5.3615
+
+
+38. Display return records ordered by return date
+
+SQL> SELECT * FROM Return ORDER BY return_date;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+
+39. Display employee records ordered by experience in descending order
+
+SQL> SELECT * FROM Employee ORDER BY experience DESC;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+         11 RAM                               101         50
+PERMANENT                 10-06-2015     10.662 POSTMASTER
+9
+
+          1 RAMESH                            101
+PERMANENT                 10-06-2015     10.662 POSTMASTER
+9
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+
+          2 SURESH                            101          1
+PERMANENT                 15-03-2018      7.898 SUPERVISOR
+8
+
+          3 MAHESH                            101          1
+CONTRACT                  21-08-2019      6.465 CLERK
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+10
+
+          4 KARTHIK                           101          1
+PERMANENT                 10-01-2020      6.078 DELIVERY STAFF
+6
+
+          5 ARUN                              101          1
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+CONTRACT                  05-11-2021      4.258 SORTING STAFF
+14
+
+
+6 rows selected.
+
+SQL> SELECT * FROM RETURN;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+40. Display return locations having more than one return
+SQL> SELECT return_location,COUNT(*) FROM Return GROUP BY return_location HAVING COUNT(*)>1;
+
+RETURN_LOCATION             COUNT(*)
+------------------------- ----------
+SIVAKASI                           2
+ERODE                              2
+
+
+41.Display return reasons having count greater than or equal to two
+
+SQL> SELECT return_reason,COUNT(*) FROM Return GROUP BY return_reason HAVING COUNT(*)>=2;
+
+RETURN_REASON               COUNT(*)
+------------------------- ----------
+DAMAGED                            2
+
+
+42. Display employee types having average experience greater than four
+
+SQL> SELECT employee_type,AVG(experience) FROM Employee GROUP BY employee_type HAVING AVG(experience)>4;
+
+EMPLOYEE_TYPE             AVG(EXPERIENCE)
+------------------------- ---------------
+PERMANENT                           8.825
+CONTRACT                           5.3615
+
+43. Display return locations having more than one return ordered by count in descending order
+
+SQL> SELECT return_location,COUNT(*) FROM Return GROUP BY return_location HAVING COUNT(*)>1 ORDER BY COUNT(*) DESC;
+
+RETURN_LOCATION             COUNT(*)
+------------------------- ----------
+ERODE                              2
+SIVAKASI                           2
+
+
+
+44. Order employees by name then experience
+
+SQL> SELECT * FROM Employee ORDER BY employee_name,experience DESC;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+          5 ARUN                              101          1
+CONTRACT                  05-11-2021      4.258 SORTING STAFF
+14
+
+          4 KARTHIK                           101          1
+PERMANENT                 10-01-2020      6.078 DELIVERY STAFF
+6
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+
+          3 MAHESH                            101          1
+CONTRACT                  21-08-2019      6.465 CLERK
+10
+
+         11 RAM                               101         50
+PERMANENT                 10-06-2015     10.662 POSTMASTER
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+9
+
+          1 RAMESH                            101
+PERMANENT                 10-06-2015     10.662 POSTMASTER
+9
+
+          2 SURESH                            101          1
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+PERMANENT                 15-03-2018      7.898 SUPERVISOR
+8
+
+
+6 rows selected.
+
+
+45: display the return location and return reason and their count grouped by return location first then return reason
+
+
+SQL> select return_location,return_reason,count(*) from return group by return_location,return_reason;
+
+RETURN_LOCATION           RETURN_REASON               COUNT(*)
+------------------------- ------------------------- ----------
+SIVAKASI                  DAMAGED                            3
+SIVAKASI                  DELAY                              1
+CHENNAI                   WRONG ITEM                         1
+ERODE                     DAMAGED                            1
+ERODE                     ADDRESS ISSUE                      1
+
+
+46: display each employee name and their employment status as fulltime if they are permanent ,temporary if they are contract otherwise unknown 
+
+
+
+SQL> select employee_name,employee_type from employee;
+
+EMPLOYEE_NAME             EMPLOYEE_TYPE
+------------------------- -------------------------
+RAM                       PERMANENT
+RAMESH                    PERMANENT
+SURESH                    PERMANENT
+MAHESH                    CONTRACT
+KARTHIK                   PERMANENT
+ARUN                      CONTRACT
+
+6 rows selected.
+
+SQL> select employee_name,employee_type ,decode( employee_type,'PERMANENT','fulltime','CONTRACT','temporary','unknown') from employee;
+
+EMPLOYEE_NAME             EMPLOYEE_TYPE             DECODE(EM
+------------------------- ------------------------- ---------
+RAM                       PERMANENT                 fulltime
+RAMESH                    PERMANENT                 fulltime
+SURESH                    PERMANENT                 fulltime
+MAHESH                    CONTRACT                  temporary
+KARTHIK                   PERMANENT                 fulltime
+ARUN                      CONTRACT                  temporary
+
+6 rows selected.
+
+
+
+47: ORDER BY USING MULTI COLUMN
+
+
+
+SQL> SELECT EMPLOYEE_NAME,EXPERIENCE FROM EMPLOYEE;
+
+EMPLOYEE_NAME             EXPERIENCE
+------------------------- ----------
+RAM                           10.662
+RAMESH                          7.55
+SURESH                         15.55
+KUMAR                            5.5
+KARTHIK                        6.078
+ARUN                           4.258
+
+6 rows selected.
+
+SQL> SELECT EMPLOYEE_NAME,EXPERIENCE FROM Employee ORDER BY employee_name ASC,experience DESC;
+
+EMPLOYEE_NAME             EXPERIENCE
+------------------------- ----------
+ARUN                           4.258
+KARTHIK                        6.078
+KUMAR                            5.5
+RAM                           10.662
+RAMESH                          7.55
+SURESH                         15.55
+
+6 rows selected.
+
+
+---AGGREGATE FUNCTIONS 
+
+SQL> SELECT * FROM RETURN;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+1. count the total number of rows in the Return table
+
+SQL> SELECT COUNT(*) FROM Return;
+
+  COUNT(*)
+----------
+         5
+
+2. count the number of non-null remarks in the Return table.
+
+SQL> SELECT COUNT(remarks) FROM Return;
+
+COUNT(REMARKS)
+--------------
+             4
+
+3.find the total sum of article numbers in the Return table"
+
+SQL> SELECT SUM(article_no) FROM Return;
+
+SUM(ARTICLE_NO)
+---------------
+            515
+
+4. find the sum of article numbers for returns from Sivakasi location
+
+SQL> SELECT SUM(article_no) FROM Return WHERE return_location='SIVAKASI';
+
+SUM(ARTICLE_NO)
+---------------
+            203
+
+5. find the average article number in the Return table
+
+SQL> SELECT AVG(article_no) FROM Return;
+
+AVG(ARTICLE_NO)
+---------------
+            103
+
+6. Find the minimum article number
+
+SQL> SELECT MIN(article_no) FROM Return;
+
+MIN(ARTICLE_NO)
+---------------
+            101
+
+7. Find the maximum article number
+
+SQL> SELECT MAX(article_no) FROM Return;
+
+MAX(ARTICLE_NO)
+---------------
+            105
+
+8. Count the number of distinct return locations.
+
+SQL> SELECT COUNT(DISTINCT return_location) FROM Return;
+
+COUNT(DISTINCTRETURN_LOCATION)
+------------------------------
+                             3
+9. Count number of returns for each return location
+
+SQL> SELECT return_location,COUNT(*) FROM Return GROUP BY return_location;
+
+RETURN_LOCATION             COUNT(*)
+------------------------- ----------
+SIVAKASI                           2
+CHENNAI                            1
+ERODE                              2
+
+10. Display return locations ordered by count in ascending order
+
+SQL> SELECT return_location,COUNT(*) FROM Return GROUP BY return_location ORDER BY COUNT(*);
+
+RETURN_LOCATION             COUNT(*)
+------------------------- ----------
+CHENNAI                            1
+ERODE                              2
+SIVAKASI                           2
+
+
+11. Display return locations ordered by count in descending order
+
+SQL> SELECT return_location,COUNT(*) FROM Return GROUP BY return_location ORDER BY COUNT(*) DESC;
+
+RETURN_LOCATION             COUNT(*)
+------------------------- ----------
+SIVAKASI                           2
+ERODE                              2
+CHENNAI                            1
+
+12. Find average experience of employees for each employee type where average is greater than 4
+
+SQL> SELECT employee_type,AVG(experience) FROM Employee GROUP BY employee_type HAVING AVG(experience)>4;
+
+EMPLOYEE_TYPE             AVG(EXPERIENCE)
+------------------------- ---------------
+PERMANENT                               8
+CONTRACT                                5
+
+
+13. Display return locations having more than one return
+
+SQL> SELECT return_location,COUNT(*) FROM Return GROUP BY return_location HAVING COUNT(*)>1;
+
+RETURN_LOCATION             COUNT(*)
+------------------------- ----------
+SIVAKASI                           2
+ERODE                              2
+
+14. Display count, sum, average, minimum and maximum of article numbers
+
+SQL> SELECT COUNT(*),SUM(article_no),AVG(article_no),MIN(article_no),MAX(article_no) FROM Return;
+
+  COUNT(*) SUM(ARTICLE_NO) AVG(ARTICLE_NO) MIN(ARTICLE_NO) MAX(ARTICLE_NO)
+---------- --------------- --------------- --------------- ---------------
+         5             515             103             101             105
+
+
+---STRING FUNCTIONS
+
+15. Convert employee names to uppercase
+
+SQL> SELECT UPPER(employee_name) FROM Employee;
+
+UPPER(EMPLOYEE_NAME)
+-------------------------
+RAM
+RAMESH
+SURESH
+MAHESH
+KARTHIK
+ARUN
+
+6 rows selected.
+
+16. Convert return reasons to lowercase
+
+SQL> SELECT LOWER(return_reason) FROM Return;
+
+LOWER(RETURN_REASON)
+-------------------------
+delay
+wrong item
+damaged
+address issue
+damaged
+
+17. Display return locations with first letter capitalized
+
+SQL> SELECT INITCAP(return_location) FROM Return;
+
+INITCAP(RETURN_LOCATION)
+-------------------------
+Sivakasi
+Chennai
+Erode
+Erode
+Sivakasi
+
+18. Find the length of each employee name
+
+SQL> SELECT LENGTH(employee_name) FROM Employee;
+
+LENGTH(EMPLOYEE_NAME)
+---------------------
+                    3
+                    6
+                    6
+                    6
+                    7
+                    4
+
+6 rows selected.
+
+19. Extract first four characters from return reason
+
+SQL> SELECT SUBSTR(return_reason,1,4) FROM Return;
+
+SUBSTR(RETURN_RE
+----------------
+DELA
+WRON-
+DAMA
+ADDR
+DAMA
+
+20. Find the position of letter ‘A’ in return reason
+
+SQL> SELECT INSTR(return_reason,'A') FROM Return;
+
+INSTR(RETURN_REASON,'A')
+------------------------
+                       4
+                       0
+                       2
+                       1
+                       2
+
+21. Concatenate return reason and return location
+
+SQL> SELECT CONCAT(return_reason,return_location) FROM Return;
+
+CONCAT(RETURN_REASON,RETURN_LOCATION)
+--------------------------------------------------
+DELAYSIVAKASI
+WRONG ITEMCHENNAI
+DAMAGEDERODE
+ADDRESS ISSUEERODE
+DAMAGEDSIVAKASI
+
+22. Display return reason and return location separated by hyphen
+
+SQL> SELECT return_reason||' - '||return_location FROM Return;
+
+RETURN_REASON||'-'||RETURN_LOCATION
+-----------------------------------------------------
+DELAY - SIVAKASI
+WRONG ITEM - CHENNAI
+DAMAGED - ERODE
+ADDRESS ISSUE - ERODE
+DAMAGED - SIVAKASI
+
+23. Replace DAMAGED with BROKEN in return reason
+
+SQL> SELECT REPLACE(return_reason,'DAMAGED','BROKEN') FROM Return;
+
+REPLACE(RETURN_REASON,'DAMAGED','BROKEN')
+--------------------------------------------------------------------------------
+DELAY
+WRONG ITEM
+BROKEN
+ADDRESS ISSUE
+BROKEN
+
+24. Remove leading and trailing spaces from return location
+
+SQL> SELECT TRIM(return_location) FROM Return;
+
+TRIM(RETURN_LOCATION)
+-------------------------
+SIVAKASI
+CHENNAI
+ERODE
+ERODE
+SIVAKASI
+
+25. Remove left and right spaces from a string
+
+SQL> SELECT LTRIM('   SIVAKASI') ,RTRIM('SIVAKASI   ') FROM dual;
+
+LTRIM('S RTRIM('S
+-------- --------
+SIVAKASI SIVAKASI
+
+26. Pad employee names on the left with *
+
+SQL> SELECT LPAD(employee_name,15,'*') FROM Employee;
+
+LPAD(EMPLOYEE_NAME,15,'*')
+------------------------------------------------------------
+************RAM
+*********RAMESH
+*********SURESH
+*********MAHESH
+********KARTHIK
+***********ARUN
+
+6 rows selected.
+
+27. Pad employee names on the right with *
+
+SQL> SELECT RPAD(employee_name,15,'*') FROM Employee;
+
+RPAD(EMPLOYEE_NAME,15,'*')
+------------------------------------------------------------
+RAM************
+RAMESH*********
+SURESH*********
+MAHESH*********
+KARTHIK********
+ARUN***********
+
+6 rows selected.
+
+28. Find ASCII value of a character
+
+SQL> SELECT ASCII('A') FROM dual;
+
+ASCII('A')
+----------
+        65
+
+29. Convert ASCII value into character
+SQL> SELECT CHR(65) FROM dual;
+
+C
+-
+A
+
+
+---NUMBER FUNCTIONS
+
+
+SQL> SELECT * FROM EMPLOYEE;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+         11 RAM                               101         50
+PERMANENT                 10-06-2015     10.662 POSTMASTER
+9
+
+          1 RAMESH                            101
+PERMANENT                 10-06-2015     10.662 POSTMASTER
+9
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+
+          2 SURESH                            101          1
+PERMANENT                 15-03-2018      7.898 SUPERVISOR
+8
+
+          3 MAHESH                            101          1
+CONTRACT                  21-08-2019      6.465 CLERK
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+10
+
+          4 KARTHIK                           101          1
+PERMANENT                 10-01-2020      6.078 DELIVERY STAFF
+6
+
+          5 ARUN                              101          1
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_JO EXPERIENCE DESIGNATION
+------------------------- ---------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+CONTRACT                  05-11-2021      4.258 SORTING STAFF
+14
+
+
+6 rows selected.
+
+30. Find absolute difference between experience and 10
+
+SQL> SELECT ABS(experience-10) FROM Employee;
+
+ABS(EXPERIENCE-10)
+------------------
+              .662
+              .662
+             2.102
+             3.535
+             3.922
+             5.742
+
+6 rows selected.
+
+31. Round experience up to the nearest integer
+
+SQL> SELECT CEIL(experience) FROM Employee;
+
+CEIL(EXPERIENCE)
+----------------
+              11
+              11
+               8
+               7
+               7
+               5
+
+6 rows selected.
+
+32. Round experience down to the nearest integer
+
+SQL> SELECT FLOOR(experience) FROM Employee;
+
+FLOOR(EXPERIENCE)
+-----------------
+               10
+               10
+                7
+                6
+                6
+                4
+
+6 rows selected.
+
+33. Round experience to one decimal place
+
+SQL> SELECT ROUND(experience,1) FROM Employee;
+
+ROUND(EXPERIENCE,1)
+-------------------
+               10.7
+               10.7
+                7.9
+                6.5
+                6.1
+                4.3
+
+6 rows selected.
+
+34. Truncate experience value
+
+SQL> SELECT TRUNC(experience) FROM Employee;
+
+TRUNC(EXPERIENCE)
+-----------------
+               10
+               10
+                7
+                6
+                6
+                4
+
+6 rows selected.
+
+35. Find remainder when article number is divided by 2
+
+SQL> SELECT MOD(article_no,2) FROM Return;
+
+MOD(ARTICLE_NO,2)
+-----------------
+                0
+                1
+                0
+                1
+                1
+
+36. Find power of 2 raised to 3
+
+SQL> SELECT POWER(2,3) FROM dual;
+
+POWER(2,3)
+----------
+         8
+
+37. Find square root of 25
+
+SQL> SELECT SQRT(225) FROM dual;
+
+  SQRT(25) 
+----------
+         15
+
+38. Find sign of experience minus 5
+
+SQL> SELECT SIGN(experience-5) FROM Employee;
+
+SIGN(EXPERIENCE-5)
+------------------
+                 1
+                 1
+                 1
+                 1
+                 1
+                -1
+
+6 rows selected.
+
+39. Find exponential value of 1
+
+SQL> SELECT EXP(1) FROM dual;
+
+    EXP(1)
+----------
+2.71828183
+
+40. Find logarithm of 100 with base 10
+
+SQL> SELECT LOG(10,100) FROM dual;
+
+LOG(10,100)
+-----------
+          2
+
+41. Find natural logarithm of 10
+
+SQL> SELECT LN(10) FROM dual;
+
+    LN(10)
+----------
+2.30258509
+
+42. Find the greatest value among given numbers
+
+SQL> SELECT GREATEST(5,10,3) FROM dual;
+
+GREATEST(5,10,3)
+----------------
+              10
+
+43. Find the least value among given numbers
+
+SQL> SELECT LEAST(5,10,3) FROM dual;
+
+LEAST(5,10,3)
+-------------
+            3
+
+---DATE FUNCTIONS
+
+44. Display the current system date
+
+SQL> SELECT SYSDATE FROM dual;
+
+SYSDATE
+----------
+08-02-2026
+
+
+45. Display the current session date
+
+SQL> SELECT CURRENT_DATE FROM dual;
+
+CURRENT_DA
+----------
+08-02-2026
+
+
+46. Convert a string into date format
+
+SQL> SELECT TO_DATE('10-06-2023','DD-MM-YYYY') FROM dual;
+
+TO_DATE('1
+----------
+10-06-2023
+
+
+47. Display system date in day-month-year format
+
+SQL> SELECT TO_DATE('10-06-2023 10:30','DD-MM-YYYY HH24:MI') FROM dual;
+
+TO_DATE('1
+----------
+10-06-2023
+
+
+48. Display the date from return date in character format.
+
+SQL> SELECT TO_CHAR(SYSDATE,'DD-MM-YYYY') FROM dual;
+
+TO_CHAR(SY
+----------
+08-02-2026
+
+
+49. Display the day from todays date
+
+SQL> SELECT TO_CHAR(SYSDATE,'DAY') FROM dual;
+
+TO_CHAR(SYSDATE,'DAY')
+------------------------------------
+SUNDAY
+
+
+50. Display the month and year from  date
+
+SQL> SELECT TO_CHAR(SYSDATE,'MONTH YYYY') FROM dual;
+
+TO_CHAR(SYSDATE,'MONTHYYYY')
+-----------------------------------------
+FEBRUARY  2026
+
+
+51. Display returns between two given dates
+
+SQL> SELECT SYSDATE - DATE '2023-06-10' FROM dual;
+
+SYSDATE-DATE'2023-06-10'
+------------------------
+               974.10875
+
+52. Find the number of days between the system date and 10-06-2023 rounded to two decimal places
+
+SQL> SELECT ROUND(SYSDATE - DATE '2023-06-10',2) FROM dual;
+
+ROUND(SYSDATE-DATE'2023-06-10',2)
+---------------------------------
+                           974.11
+
+
+53. Find the number of months between the system date and 10-06-2020 rounded to two decimal places
+
+SQL> SELECT ROUND(MONTHS_BETWEEN(SYSDATE,DATE '2020-06-10'),2) FROM dual;
+
+ROUND(MONTHS_BETWEEN(SYSDATE,DATE'2020-06-10'),2)
+-------------------------------------------------
+                                            67.94
+
+
+54. Find the number of months between the system date and each return date rounded to two decimal places
+
+SQL> SELECT ROUND(MONTHS_BETWEEN(SYSDATE,return_date),2) FROM Return;
+
+ROUND(MONTHS_BETWEEN(SYSDATE,RETURN_DATE),2)
+--------------------------------------------
+                                       31.87
+                                       31.78
+                                       31.68
+                                       31.62
+                                       31.94
+
+
+55. Find the completed number of years between the system date and 10-06-2015
+
+SQL> SELECT TRUNC(MONTHS_BETWEEN(SYSDATE,DATE '2015-06-10')/12) FROM dual;
+
+TRUNC(MONTHS_BETWEEN(SYSDATE,DATE'2015-06-10')/12)
+--------------------------------------------------
+                                                10
+
+
+56.Add six months to the given date 10-06-2023
+
+SQL> SELECT ADD_MONTHS(DATE '2023-06-10',6) FROM dual;
+
+ADD_MONTHS
+----------
+10-12-2023
+
+
+57. Subtract two months from the given date 10-06-2023
+
+SQL> SELECT ADD_MONTHS(DATE '2023-06-10',-2) FROM dual;
+
+ADD_MONTHS
+----------
+10-04-2023
+
+
+58. Subract three months to the return date
+
+SQL> SELECT ADD_MONTHS(return_date,-3) FROM Return;
+
+ADD_MONTHS
+----------
+12-09-2023
+15-09-2023
+18-09-2023
+20-09-2023
+10-09-2023
+
+
+59.Find the next Monday after the given date 10-06-2023
+
+SQL> SELECT NEXT_DAY(DATE '2023-06-10','MONDAY') FROM dual;
+
+NEXT_DAY(D
+----------
+12-06-2023
+
+60. Find the next Friday from the current system date
+
+SQL> SELECT NEXT_DAY(SYSDATE,'FRIDAY') FROM dual;
+
+NEXT_DAY(S
+----------
+13-02-2026
+
+
+61. Find the last day of the month for the given date 10-06-2023
+
+SQL> SELECT LAST_DAY(DATE '2023-06-10') FROM dual;
+
+LAST_DAY(D
+----------
+30-06-2023
+
+
+62. Find the last day of the current month
+
+SQL> SELECT LAST_DAY(SYSDATE) FROM dual;
+
+LAST_DAY(S
+----------
+28-02-2026
+
+
+63.Extract the day from return date
+
+SQL> SELECT EXTRACT(DAY FROM return_date) FROM Return;
+
+EXTRACT(DAYFROMRETURN_DATE)
+---------------------------
+                         12
+                         15
+                         18
+                         20
+                         10
+
+
+64.Extract the month from return date
+
+SQL> SELECT EXTRACT(MONTH FROM return_date) FROM Return;
+
+EXTRACT(MONTHFROMRETURN_DATE)
+-----------------------------
+                            6
+                            6
+                            6
+                            6
+                            6
+
+65. Extract the year from return date
+
+SQL> SELECT EXTRACT(YEAR FROM return_date) FROM Return;
+
+EXTRACT(YEARFROMRETURN_DATE)
+----------------------------
+                        2023
+                        2023
+                        2023
+                        2023
+                        2023
+
+
+66. Display return records between 10-06-2023 and 15-06-2023
+
+SQL> SELECT * FROM Return WHERE return_date BETWEEN DATE '2023-06-10' AND DATE '2023-06-15';
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         2        102 DELAY                     12-06-2023
+SIVAKASI                  UPDATED
+
+         3        103 WRONG ITEM                15-06-2023
+CHENNAI                   PROCESSED
+
+         6        101 DAMAGED                   10-06-2023
+SIVAKASI
+
+
+67. Display return records after 15-06-2023
+
+SQL> SELECT * FROM Return WHERE return_date > DATE '2023-06-15';
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DAT
+---------- ---------- ------------------------- ----------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+         4        104 DAMAGED                   18-06-2023
+ERODE                     RECHECK
+
+         5        105 ADDRESS ISSUE             20-06-2023
+ERODE                     PROCESSED
+
+

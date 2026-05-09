@@ -1,0 +1,191 @@
+db.createCollection("pokemon")
+{ ok: 1 }
+db.pokemon.insertOne({
+  pokemon_id: 1,
+  pokemon_name: "bulbasaur",
+  height: 1.5,
+  weight: 20
+})
+{
+  acknowledged: true,
+  insertedId: ObjectId('69f19cd9a6cc1a40fd3537b1')
+}
+db.pokemon.insertMany([
+  {
+    pokemon_id: 2,
+    pokemon_name: "ivisaur",
+    height: 3.8,
+    weight: 30
+  },
+  {
+    pokemon_id: 3,
+    pokemon_name: "venusaur",
+    height: 10.4,
+    weight: 300
+  },
+  {
+    pokemon_id: 4,
+    pokemon_name: "charmander",
+    height: 1.5,
+    weight: 20
+  }
+])
+])
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId('69f19ce1a6cc1a40fd3537b2'),
+    '1': ObjectId('69f19ce1a6cc1a40fd3537b3'),
+    '2': ObjectId('69f19ce1a6cc1a40fd3537b4')
+  }
+}
+db.pokemon.deleteOne({ pokemon_name: "charmander" })
+{
+  acknowledged: true,
+  deletedCount: 1
+}
+db.pokemon.updateMany(
+  {},
+  { $inc: { weight: 1 } }
+)
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 3,
+  modifiedCount: 3,
+  upsertedCount: 0
+}
+db.pokemon.updateOne(
+  { pokemon_name: "ivisaur" },
+  { $set: { weight: 90 } }
+)
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+db.pokemon.updateMany(
+  {},
+  { $rename: { "pokemon_id": "id" } }
+)
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 3,
+  modifiedCount: 3,
+  upsertedCount: 0
+}
+db.pokemon.find().sort({ id: 1 })
+{
+  _id: ObjectId('69f19cd9a6cc1a40fd3537b1'),
+  pokemon_name: 'bulbasaur',
+  height: 1.5,
+  weight: 21,
+  id: 1
+}
+{
+  _id: ObjectId('69f19ce1a6cc1a40fd3537b2'),
+  pokemon_name: 'ivisaur',
+  height: 3.8,
+  weight: 90,
+  id: 2
+}
+{
+  _id: ObjectId('69f19ce1a6cc1a40fd3537b3'),
+  pokemon_name: 'venusaur',
+  height: 10.4,
+  weight: 301,
+  id: 3
+}
+db.pokemon.find().sort({ id: -1 })
+{
+  _id: ObjectId('69f19ce1a6cc1a40fd3537b3'),
+  pokemon_name: 'venusaur',
+  height: 10.4,
+  weight: 301,
+  id: 3
+}
+{
+  _id: ObjectId('69f19ce1a6cc1a40fd3537b2'),
+  pokemon_name: 'ivisaur',
+  height: 3.8,
+  weight: 90,
+  id: 2
+}
+{
+  _id: ObjectId('69f19cd9a6cc1a40fd3537b1'),
+  pokemon_name: 'bulbasaur',
+  height: 1.5,
+  weight: 21,
+  id: 1
+}
+db.pokemon.aggregate([
+  {
+  pokemon_name: 'ivisaur',
+  height: 3.8,
+  weight: 90,
+  id: 2
+}
+db.pokemon.find({ weight: { $gt: 90 } })
+{
+  _id: ObjectId('69f19ce1a6cc1a40fd3537b3'),
+  pokemon_name: 'venusaur',
+  height: 10.4,
+  weight: 301,
+  id: 3
+}
+db.pokemon.find({ weight: { $lt: 90 } })
+{
+  _id: ObjectId('69f19cd9a6cc1a40fd3537b1'),
+  pokemon_name: 'bulbasaur',
+  height: 1.5,
+  weight: 21,
+  id: 1
+}
+db.pokemon.find({ weight: { $ne: 90 } })
+{
+  _id: ObjectId('69f19cd9a6cc1a40fd3537b1'),
+  pokemon_name: 'bulbasaur',
+  height: 1.5,
+  weight: 21,
+  id: 1
+}
+{
+  _id: ObjectId('69f19ce1a6cc1a40fd3537b3'),
+  pokemon_name: 'venusaur',
+  height: 10.4,
+  weight: 301,
+  id: 3
+}
+db.pokemon.find({ weight: { $lte: 90 } })
+{
+  _id: ObjectId('69f19cd9a6cc1a40fd3537b1'),
+  pokemon_name: 'bulbasaur',
+  height: 1.5,
+  weight: 21,
+  id: 1
+}
+{
+  _id: ObjectId('69f19ce1a6cc1a40fd3537b2'),
+  pokemon_name: 'ivisaur',
+  height: 3.8,
+  weight: 90,
+  id: 2
+}
+db.pokemon.find({ weight: { $gte: 90 } })
+{
+  _id: ObjectId('69f19ce1a6cc1a40fd3537b2'),
+  pokemon_name: 'ivisaur',
+  height: 3.8,
+  weight: 90,
+  id: 2
+}
+  _id: ObjectId('69f19ce1a6cc1a40fd3537b3'),
+  pokemon_name: 'venusaur',
+  height: 10.4,
+  weight: 301,
+  id: 3
+}
+test>

@@ -1,0 +1,527 @@
+
+SIMPLE VIEW
+
+1. Create a view to display employee name, designation and office code.
+
+SQL> CREATE VIEW emp_basic_info AS
+  2  SELECT employee_id, employee_name, designation, office_code
+  3  FROM Employee;
+
+View created.
+
+SQL> SELECT * FROM EMP_BASIC_INFO;
+
+EMPLOYEE_ID EMPLOYEE_NAME             DESIGNATION               OFFICE_CODE
+----------- ------------------------- ------------------------- -----------
+         11 RAM                       POSTMASTER                        101
+          1 RAMESH                    POSTMASTER                        101
+          2 SURESH                    SUPERVISOR                        101
+          3 KUMAR                     CLERK                             101
+          4 KARTHIK                   DELIVERY STAFF                    101
+          5 ARUN                      SORTING STAFF                     101
+
+6 rows selected.
+
+FILTERED VIEW
+
+2. Create a view to display employees who work in a specific office (e.g., office_code = 101).
+
+SQL> CREATE VIEW emp_office_101 AS
+  2  SELECT employee_id, employee_name, office_code
+  3  FROM Employee
+  4  WHERE office_code = 101;
+
+View created.
+
+SQL> SELECT * FROM EMP_OFFICE_101;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE
+----------- ------------------------- -----------
+         11 RAM                               101
+          1 RAMESH                            101
+          2 SURESH                            101
+          3 KUMAR                             101
+          4 KARTHIK                           101
+          5 ARUN                              101
+
+6 rows selected.
+
+
+JOIN VIEW
+
+3. Create a view to show which employee handled which mail bag.
+
+SQL> CREATE VIEW employee_bag_details AS
+  2  SELECT e.employee_name,
+  3         t.bag_number,
+  4         t.movement_status
+  5  FROM Employee e
+  6  JOIN TravelRecord t
+  7  ON e.employee_id = t.employee_id;
+
+View created.
+
+
+SQL> SELECT * FROM EMPLOYEE_BAG_DETAILS;
+
+EMPLOYEE_NAME             BAG_NUMBER MOVEMENT_STATUS
+------------------------- ---------- -------------------------
+RAMESH                          1001 In Transit
+
+
+
+AGGREGATION VIEW 
+
+4. Create a view to count number of employees in each designation.
+
+
+SQL> CREATE VIEW designation_count AS
+  2  SELECT designation,
+  3         COUNT(*) AS total_employees
+  4  FROM Employee
+  5  GROUP BY designation;
+
+View created.
+
+
+
+SQL> SELECT * FROM DESIGNATION_COUNT;
+
+DESIGNATION               TOTAL_EMPLOYEES
+------------------------- ---------------
+POSTMASTER                              2
+SUPERVISOR                              1
+CLERK                                   1
+DELIVERY STAFF                          1
+SORTING STAFF                           1
+
+
+NESTED VIEW
+
+5. Create a view to display designations having more than 5 employees (using existing view).
+
+SQL> CREATE VIEW designation_above_5 AS
+  2  SELECT designation, total_employees
+  3  FROM designation_count
+
+  4  WHERE total_employees > 5;
+
+View created.
+
+SQL> SELECT * FROM designation_above_5;
+
+DESIGNATION               TOTAL_EMPLOYEES
+------------------------- ---------------
+Clerk                                   6
+
+
+SELF JOIN
+
+
+6. Create a view to display employees along with their manager name.
+
+SQL> CREATE VIEW emp_manager_view AS
+  2  SELECT e.employee_name AS employee,
+  3         m.employee_name AS manager
+  4  FROM Employee e
+  5  LEFT JOIN Employee m
+  6  ON e.manager_id = m.employee_id;
+
+View created.
+
+SQL> SELECT * FROM EMP_MANAGER_VIEW;
+
+EMPLOYEE                  MANAGER
+------------------------- -------------------------
+SURESH                    RAMESH
+KUMAR                     RAMESH
+KARTHIK                   RAMESH
+ARUN                      RAMESH
+RAM
+RAMESH
+
+6 rows selected.
+
+
+
+
+--MODIFYING VIEWS
+--views are generally not updatable (meaning you can't directly INSERT, UPDATE, or DELETE data through them) unless they meet certain conditions. 
+--A view is updatable when: It selects from a single table, It doesn’t contain aggregates, GROUP BY clauses, or joins, It does not include any subqueries or DISTINCT keywords.
+--UPDATES WILL GET REFLECTED IN ORIGINAL TABLE
+
+SQL> UPDATE emp_office_101
+  2  SET employee_name = 'RAJESH'
+  3  WHERE employee_id = 1;
+
+1 row updated.
+
+SQL> SELECT * FROM emp_office_101
+  2  WHERE employee_id = 1;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE
+----------- ------------------------- -----------
+          1 RAJESH                            101
+
+SQL> SELECT employee_id, employee_name, office_code
+  2  FROM Employee
+  3  WHERE employee_id = 1;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE
+----------- ------------------------- -----------
+          1 RAJESH                            101
+
+
+
+
+
+
+SQL> select avg(experience) from employee;
+
+AVG(EXPERIENCE)
+---------------
+     5.79983333
+
+SQL>  SELECT EMPLOYEE_ID, EMPLOYEE_NAME, EXPERIENCE
+  2        FROM EMPLOYEE
+  3       WHERE EXPERIENCE < (SELECT AVG(EXPERIENCE) FROM EMPLOYEE);
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE
+----------- ------------------------- ----------
+         10 ARUN                               5
+         12 KAVI                               4
+         13 PAVI                               2
+          3 KUMAR                            5.5
+          5 ARUN                           4.258
+         15 VARUN                              1
+         16 MARUN                              2
+
+7 rows selected.
+
+SQL> insert into emp_office_101 values (29,'vishnu',101);
+
+1 row created.
+
+SQL> select * from emp_office_101 where employee_id=29;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE
+----------- ------------------------- -----------
+         29 vishnu                            101
+
+SQL> select * from employee where employee_id=29;
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_J EXPERIENCE DESIGNATION
+------------------------- --------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+         29 vishnu                            101
+
+
+
+
+SQL> insert into designation_count values ('supervisor',4);
+insert into designation_count values ('supervisor',4)
+*
+ERROR at line 1:
+ORA-01733: virtual column not allowed here
+
+
+SQL> delete from emp_office_101 where employee_id=29;
+
+1 row deleted.
+
+SQL> select * from emp_office_101 where employee_id=29;
+
+no rows selected
+
+SQL> select * from employee where employee_id=29;
+
+no rows selected
+
+
+
+		INDEX
+
+--INDEX -- Indexes are used to improve the performance of database queries by allowing the database to find rows more quickly
+
+
+	B-TREE INDEX
+
+It stores indexed column values in a sorted, balanced tree structure to allow fast searching.
+
+SQL> CREATE INDEX idx_emp_designation
+  2  ON Employee(designation);
+
+Index created.
+
+
+	
+SQL> SELECT EMPLOYEE_ID,EMPLOYEE_NAME,DESIGNATION FROM Employee
+  2  WHERE designation = 'Clerk';
+
+EMPLOYEE_ID EMPLOYEE_NAME             DESIGNATION
+----------- ------------------------- -------------------------
+         12 KAVI                      Clerk
+         13 PAVI                      Clerk
+         14 SARUN                     Clerk
+          3 KUMAR                     Clerk
+         15 VARUN                     Clerk
+         16 MARUN                     Clerk
+
+6 rows selected.
+
+
+
+	UNIQUE INDEX
+
+--UNIQUE INDEX ensures that no two rows in a table have the same value for the indexed columns. 
+--unique index is automatically created when you define a unique constraint on a column.
+
+SQL> CREATE UNIQUE INDEX idx_unique_urgency_name
+  2  ON UrgencyLevel(name);
+
+Index created.
+
+
+
+
+	BIT MAP INDEX
+
+--bitmap index is used for columns with a low cardinality (i.e., columns with a small number of distinct values)
+
+SQL> CREATE BITMAP INDEX idx_emp_type
+  2  ON Employee(employee_type);
+
+Index created.
+
+
+
+
+	COMPOSISTE INDEX
+
+--composite index is an index on multiple columns. It helps improve the performance of queries that filter on multiple columns.
+
+SQL> CREATE INDEX idx_source_destination
+  2  ON MailBag(source_office, destination_office);
+
+Index created.
+
+SQL> SELECT * FROM MailBag
+  2  WHERE source_office = 101
+  3  AND destination_office = 102;
+
+BAG_NUMBER SERIAL_NUMBER   CAPACITY ARTICLE_COUNT SOURCE_OFFICE
+---------- ------------- ---------- ------------- -------------
+DESTINATION_OFFICE
+------------------
+DISPATCH_TIME
+---------------------------------------------------------------------------
+TRANSPORT_NUMBER
+----------------
+      1001             1         50            10           101
+               102
+25-FEB-26 08.41.06.816000 PM
+            5001
+
+
+
+
+
+	FUNCTION BASED INDEX
+
+-- function-based index is created based on the result of a function or expression
+
+SQL> CREATE INDEX idx_lower_emp_name
+  2  ON Employee(LOWER(employee_name));
+
+Index created.
+
+SQL> SELECT * FROM Employee
+  2  WHERE LOWER(employee_name) = 'ramesh';
+
+EMPLOYEE_ID EMPLOYEE_NAME             OFFICE_CODE MANAGER_ID
+----------- ------------------------- ----------- ----------
+EMPLOYEE_TYPE             DATE_OF_J EXPERIENCE DESIGNATION
+------------------------- --------- ---------- -------------------------
+SHIFT_DETAILS
+-------------------------
+          1 RAMESH                            101
+PERMANENT                 10-JUN-15       7.55 POSTMASTER
+
+--Primary Index is an index automatically created on a table when a Primary Key constraint is defined. The primary index ensures the uniqueness of the rows based on the primary key
+--Secondary Index is an index created on a table’s non-primary key columns.(explcitly created)
+
+
+PRIMARY INDEX - CREATED AUTOMATICALLY 
+
+	movement_record_no INT PRIMARY KEY
+
+SECONDRY INDEX - CREATED EXPLICITELY
+
+SQL> CREATE INDEX idx_status
+  2  ON TravelRecord(movement_status);
+
+Index created.
+
+
+
+
+SURPRISE QUESTIONS 
+
+CASE WHEN IN SELECT 
+
+SQL> SELECT
+  2  employee_id,
+  3  employee_name,
+  4  experience,
+  5  CASE
+  6  WHEN experience >= 10 THEN 'EXPERT'
+  7  WHEN experience >= 5 THEN 'INTERMEDIATE'
+  8  ELSE 'JUNIOR'
+  9  END AS exp_level
+ 10  FROM Employee;
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE EXP_LEVEL
+----------- ------------------------- ---------- ------------
+         11 RAM                           10.662 EXPERT
+         10 ARUN                               5 INTERMEDIATE
+         12 KAVI                               4 JUNIOR
+         13 PAVI                               2 JUNIOR
+         14 SARUN                              6 INTERMEDIATE
+          1 RAMESH                          7.55 INTERMEDIATE
+          2 SURESH                         15.55 EXPERT
+          3 KUMAR                            5.5 INTERMEDIATE
+          4 KARTHIK                        6.078 INTERMEDIATE
+          5 ARUN                           4.258 JUNIOR
+         15 VARUN                              1 JUNIOR
+
+EMPLOYEE_ID EMPLOYEE_NAME             EXPERIENCE EXP_LEVEL
+----------- ------------------------- ---------- ------------
+         16 MARUN                              2 JUNIOR
+
+12 rows selected.
+
+
+case in insert 
+
+SQL> INSERT INTO RETURN (RETURN_ID, ARTICLE_NO, RETURN_REASON, REMARKS)
+  2  VALUES (
+  3      10,
+  4      110,
+  5      'DAMAGED',
+  6      CASE
+  7          WHEN 110 > 105 THEN 'HIGH VALUE'
+  8          ELSE 'STANDARD'
+  9      END
+ 10  );
+
+1 row created.
+
+SQL> select * from return where return_id=10;
+
+ RETURN_ID ARTICLE_NO RETURN_REASON             RETURN_DA
+---------- ---------- ------------------------- ---------
+RETURN_LOCATION           REMARKS
+------------------------- -------------------------
+        10        110 DAMAGED
+                          HIGH VALUE
+
+
+
+CASE WHEN IN UPDATE 
+
+
+SQL> UPDATE Employee
+  2  SET designation =
+  3  CASE
+  4  WHEN experience >= 10 THEN 'Senior'
+  5  ELSE 'Junior'
+  6  END;
+
+12 rows updated.
+
+
+SQL> select employee_name,experience,designation from employee;
+
+EMPLOYEE_NAME             EXPERIENCE DESIGNATION
+------------------------- ---------- -------------------------
+RAM                           10.662 Senior
+ARUN                               5 Junior
+KAVI                               4 Junior
+PAVI                               2 Junior
+SARUN                              6 Junior
+RAMESH                          7.55 Junior
+SURESH                         15.55 Senior
+KUMAR                            5.5 Junior
+KARTHIK                        6.078 Junior
+ARUN                           4.258 Junior
+VARUN                              1 Junior
+
+EMPLOYEE_NAME             EXPERIENCE DESIGNATION
+------------------------- ---------- -------------------------
+MARUN                              2 Junior
+
+12 rows selected.
+
+
+
+CASE IN DELETE 
+
+SQL> DELETE FROM RETURN
+  2  WHERE 1 = CASE
+  3      WHEN RETURN_REASON = 'DAMAGED' THEN 1
+  4      WHEN RETURN_DATE < TO_DATE('2024-01-01', 'YYYY-MM-DD') THEN 1
+  5      ELSE 0
+  6  END;
+
+7 rows deleted.
+
+
+SQL> select * from return;
+
+no rows selected
+
+
+ROW NUMBER 
+
+SQL> SELECT
+  2  ROW_NUMBER() OVER (ORDER BY return_date DESC) AS return_serial_no,
+  3  return_id,
+  4  article_no,
+  5  return_date
+  6  FROM Return;
+
+RETURN_SERIAL_NO  RETURN_ID ARTICLE_NO RETURN_DA
+---------------- ---------- ---------- ---------
+               1          8        107 23-JUN-23
+               2          7        106 22-JUN-23
+               3          5        105 20-JUN-23
+               4          4        104 18-JUN-23
+               5          3        103 15-JUN-23
+               6          2        102 12-JUN-23
+               7          6        101 10-JUN-23
+
+7 rows selected.
+
+
+FETCH FIRST 
+
+SQL> SELECT
+  2  bag_number,
+  3  article_count,
+  4  destination_office
+  5  FROM MailBag
+  6  ORDER BY article_count DESC
+  7  FETCH FIRST 5 ROWS ONLY;
+
+BAG_NUMBER ARTICLE_COUNT DESTINATION_OFFICE
+---------- ------------- ------------------
+      5006            65                401
+      2004            55                404
+      5005            55                404
+      3004            50                403
+      4002            50                500
+
+

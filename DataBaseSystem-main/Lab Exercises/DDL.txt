@@ -1,0 +1,344 @@
+CREATING ALL THE TABLES
+
+SQL> CREATE TABLE DELETEDEMPLOYEE (employee_id INT PRIMARY KEY, employee_name VARCHAR(25), office_code INT NOT NULL, manager_id INT, employee_type VARCHAR(25), date_of_join DATE, experience FLOAT, designation VARCHAR(25), shift_details VARCHAR(50),deleted_on date, FOREIGN KEY (manager_id) REFERENCES Employee(employee_id));
+
+Table created.
+
+SQL> DESC EMPLOYEE;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ EMPLOYEE_ID                               NOT NULL NUMBER(38)
+ EMPLOYEE_NAME                                      VARCHAR2(25)
+ OFFICE_CODE                               NOT NULL NUMBER(38)
+ MANAGER_ID                                         NUMBER(38)
+ EMPLOYEE_TYPE                                      VARCHAR2(25)
+ DATE_OF_JOIN                                       DATE
+ EXPERIENCE                                         FLOAT(126)
+ DESIGNATION                                        VARCHAR2(25)
+ SHIFT_DETAILS                                      VARCHAR2(50)
+
+
+SQL> CREATE TABLE UrgencyLevel (urgencycode INT PRIMARY KEY, name VARCHAR(25), priority VARCHAR(25), caution VARCHAR(25), delivery_timeframe DATE, handling_instruction VARCHAR(25), comments VARCHAR(25));
+
+Table created.
+
+SQL> DESC URGENCYLEVEL;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                               NOT NULL NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+
+
+SQL> CREATE TABLE Return (return_id INT PRIMARY KEY, article_no INT, return_reason VARCHAR(25), return_date DATE, return_location VARCHAR(25), remarks VARCHAR(25));
+
+Table created.
+
+SQL> DESC RETURN;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ RETURN_ID                                 NOT NULL NUMBER(38)
+ ARTICLE_NO                                         NUMBER(38)
+ RETURN_REASON                                      VARCHAR2(25)
+ RETURN_DATE                                        DATE
+ RETURN_LOCATION                                    VARCHAR2(25)
+ REMARKS                                            VARCHAR2(25)
+
+
+SQL> CREATE TABLE MailBag (bag_number INT PRIMARY KEY, serial_number INT, capacity INT, article_count INT, source_office INT, destination_office INT, dispatch_time TIMESTAMP, transport_number INT);
+
+Table created.
+
+SQL> DESC MAILBAG;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ BAG_NUMBER                                NOT NULL NUMBER(38)
+ SERIAL_NUMBER                                      NUMBER(38)
+ CAPACITY                                           NUMBER(38)
+ ARTICLE_COUNT                                      NUMBER(38)
+ SOURCE_OFFICE                                      NUMBER(38)
+ DESTINATION_OFFICE                                 NUMBER(38)
+ DISPATCH_TIME                                      TIMESTAMP(6)
+ TRANSPORT_NUMBER                                   NUMBER(38)
+
+
+SQL> CREATE TABLE TravelRecord (movement_record_no INT PRIMARY KEY, dispatch_time TIMESTAMP, arrival_time TIMESTAMP, seal_verification VARCHAR(25), movement_status VARCHAR(25), bag_number INT, employee_id INT, FOREIGN KEY (bag_number) REFERENCES MailBag(bag_number));
+
+Table created.
+
+SQL> DESC TRAVELRECORD;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ MOVEMENT_RECORD_NO                        NOT NULL NUMBER(38)
+ DISPATCH_TIME                                      TIMESTAMP(6)
+ ARRIVAL_TIME                                       TIMESTAMP(6)
+ SEAL_VERIFICATION                                  VARCHAR2(25)
+ MOVEMENT_STATUS                                    VARCHAR2(25)
+ BAG_NUMBER                                         NUMBER(38)
+ EMPLOYEE_ID                                        NUMBER(38)
+
+
+SQL> CREATE TABLE UserArticle (user_id INT, article_no INT, type VARCHAR(25), PRIMARY KEY (user_id, article_no));
+
+Table created.
+
+SQL> DESC USERARTICLE;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ USER_ID                                   NOT NULL NUMBER(38)
+ ARTICLE_NO                                NOT NULL NUMBER(38)
+ TYPE                                               VARCHAR2(25)
+
+
+---CREATE TABLE FROM OTHER TABLE
+
+
+SQL> DESC URGENCYLEVEL;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                               NOT NULL NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+
+SQL> DESC URGENCYCOPY;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                                        NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+
+
+---WITHOUT COPYING THE ROW CONTENTS
+
+SQL> CREATE TABLE URGENCYCOPY AS SELECT * FROM URGENCYLEVEL WHERE 1=0;
+
+Table created.
+
+SQL> DESC  URGENCYCOPY;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                                        NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+
+
+
+---RENAME THE TABLE 
+
+SQL> RENAME URGENCYCOPY TO URGENCYLEVELCOPY;
+
+Table renamed.
+
+SQL> DESC URGENCYCOPY;
+ERROR:
+ORA-04043: object URGENCYCOPY does not exist
+
+SQL> DESC URGENCYLEVELCOPY;
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                                        NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+
+
+
+---ADDING AND REMOVING PRIMARY KEY
+
+SQL> DESC RETURN
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ RETURN_ID                                          NUMBER(38)
+ ARTICLE_NO                                         NUMBER(38)
+ RETURN_REASON                                      VARCHAR2(25)
+ RETURN_DATE                                        DATE
+ RETURN_LOCATION                                    VARCHAR2(25)
+ REMARKS                                            VARCHAR2(25)
+
+
+SQL> ALTER TABLE RETURN ADD PRIMARY KEY (RETURN_ID);
+
+Table altered.
+
+SQL> DESC RETURN
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ RETURN_ID                                 NOT NULL NUMBER(38)
+ ARTICLE_NO                                         NUMBER(38)
+ RETURN_REASON                                      VARCHAR2(25)
+ RETURN_DATE                                        DATE
+ RETURN_LOCATION                                    VARCHAR2(25)
+ REMARKS                                            VARCHAR2(25)
+
+
+SQL> ALTER TABLE RETURN DROP PRIMARY KEY;
+
+Table altered.
+
+SQL> DESC RETURN
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ RETURN_ID                                          NUMBER(38)
+ ARTICLE_NO                                         NUMBER(38)
+ RETURN_REASON                                      VARCHAR2(25)
+ RETURN_DATE                                        DATE
+ RETURN_LOCATION                                    VARCHAR2(25)
+ REMARKS                                            VARCHAR2(25)
+
+
+
+---ADDING NEW FIELDS
+
+SQL> ALTER TABLE URGENCYLEVEL ADD urgencyname VARCHAR(10);
+
+Table altered.
+
+SQL> DESC URGENCYLEVEL
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                               NOT NULL NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+ URGENCYNAME                                        VARCHAR2(10)
+
+
+---RENAMING THE COLUMN
+
+SQL> ALTER TABLE URGENCYLEVEL RENAME COLUMN urgencyname to urgency_name;
+
+Table altered.
+
+SQL> DESC URGENCYLEVEL
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                               NOT NULL NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+ URGENCY_NAME                                       VARCHAR2(10)
+
+
+---CHANGING THE DOMAIN OF urgency_name to varchar 25
+
+SQL> ALTER TABLE URGENCYLEVEL MODIFY urgency_name VARCHAR(25);
+
+Table altered.
+
+SQL> DESC URGENCYLEVEL
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                               NOT NULL NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+ URGENCY_NAME                                       VARCHAR2(25)
+
+
+
+---DROPPING THE COLUMNS 
+
+SQL> ALTER TABLE URGENCYLEVEL DROP COLUMN urgency_name;
+
+Table altered.
+
+SQL> DESC URGENCYLEVEL
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                               NOT NULL NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+
+
+
+---ADDING CONSTRAINT
+
+
+SQL> ALTER TABLE EMPLOYEE ADD CONSTRAINT C1 CHECK (experience>2.5);
+
+Table altered.
+
+
+SQL> ALTER TABLE TRAVELRECORD ADD CONSTRAINT C2 FOREIGN KEY (employee_id) REFERENCES EMPLOYEE(employee_id);
+
+Table altered.
+
+SQL> ALTER TABLE URGENCYLEVEL DROP PRIMARY KEY;
+
+Table altered.
+
+SQL> DESC URGENCYLEVEL
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                                        NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+
+
+---TRUNCATE TABLE 
+
+
+SQL> TRUNCATE TABLE URGENCYLEVELCOPY;
+
+Table truncated.
+
+SQL> DESC URGENCYLEVELCOPY
+ Name                                      Null?    Type
+ ----------------------------------------- -------- ----------------------------
+ URGENCYCODE                                        NUMBER(38)
+ NAME                                               VARCHAR2(25)
+ PRIORITY                                           VARCHAR2(25)
+ CAUTION                                            VARCHAR2(25)
+ DELIVERY_TIMEFRAME                                 DATE
+ HANDLING_INSTRUCTION                               VARCHAR2(25)
+ COMMENTS                                           VARCHAR2(25)
+
+
+---DROP TABLE
+
+
+SQL> DROP TABLE URGENCYLEVELCOPY;
+
+Table dropped.
+
+SQL> DESC URGENCYLEVELCOPY
+ERROR:
+ORA-04043: object URGENCYLEVELCOPY does not exist
+
+
